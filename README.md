@@ -31,7 +31,6 @@ module.exports = {
   async download(platform, url, { type, quality }, res) { /* tu integración */ }
 };
 ```
-Usa solo APIs o servicios con los que tengas permiso y que respeten las condiciones de cada plataforma.
 
 ## Añadir una plataforma
 Añade una entrada a `providers` en `server.js` (id, nombre, hosts, `analyze`) y otra a `PLATFORMS` en `public/index.html`.
