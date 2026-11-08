@@ -13,6 +13,17 @@ const app = express();
 app.use(express.json({ limit: "10kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+// CORS: permite que la web esté en otro dominio (p. ej. GitHub Pages) y use este servidor como API.
+// Para restringirlo, define ALLOWED_ORIGIN=https://tuusuario.github.io en Render.
+app.use("/api", (req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", process.env.ALLOWED_ORIGIN || "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "content-type");
+  res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 class AppError extends Error {
   constructor(code, message, status = 400) { super(message); this.code = code; this.status = status; }
 }
