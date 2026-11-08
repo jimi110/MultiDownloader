@@ -2,7 +2,7 @@
 // Cada plataforma es un "proveedor" con esta forma:
 //   { id, name, hosts: [...], analyze(url) -> {title, thumbnail, author, duration?, formats[]}, download?(req, res, ctx) }
 // Los proveedores incluidos solo leen metadatos públicos (oEmbed / Open Graph).
-// La descarga real queda en blanco a propósito: se conecta en providers/download-hook.js.
+// La descarga real se conecta en providers/download-hook.js (yt-dlp / Cobalt).
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -81,8 +81,17 @@ app.get("/api/platforms", (_q, res) =>
 app.post("/api/:platform/analyze", async (req, res, next) => {
   try {
     const { id, p, url } = resolve(req);
-    const meta = await p.analyze(url);
-    if (hook?.formats) meta.formats = await hook.formats(id, url);
+    let meta;
+    try { meta = await p.analyze(url); }
+    catch (err) {
+      // Si el proveedor no puede leer los metadatos (p. ej. Instagram sin token de Meta), probamos con yt-dlp
+      if (!hook?.info) throw err;
+      try { meta = { formats: [], ...(await hook.info(id, url)) }; } catch { throw err; }
+    }
+    if (hook?.formats) {
+      meta.formats = await hook.formats(id, url);
+      if (!meta.duration && hook.info) meta.duration = (await hook.info(id, url).catch(() => ({}))).duration || null;
+    }
     res.json({ ...meta, downloads: Boolean(hook) });
   } catch (e) { next(e); }
 });
@@ -99,7 +108,7 @@ app.get("/api/:platform/download", async (req, res, next) => {
 
 app.use((e, _q, res, _n) => {
   if (res.headersSent) return res.end();
-  const known = e instanceof AppError;
+  const known = e instanceof AppError || (e && e.code && Number.isInteger(e.status)); // incluye los errores del gancho de descarga
   if (!known) console.error(e);
   res.status(known ? e.status : 500).json({ code: known ? e.code : "SERVER", error: known ? e.message : "Error interno del servidor." });
 });
