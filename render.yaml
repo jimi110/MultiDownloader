@@ -5,19 +5,9 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: 20
       - key: META_OEMBED_TOKEN
         sync: false
-      # Descarga (opcionales)
-      - key: YTDLP_COOKIES_B64
-        sync: false
-      - key: YTDLP_PROXY
-        sync: false
-      - key: COBALT_API_URL
-        sync: false
-      - key: COBALT_API_KEY
-        sync: false
-      - key: DOWNLOAD_ENGINE
-        value: ytdlp

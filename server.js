@@ -69,7 +69,14 @@ const providers = {
 // y escribir el archivo en `res`. Y debe describir qué formatos ofrece por plataforma con
 // una función opcional `formats(platform, url)` que devuelva [{type:"video"|"audio", quality, label}].
 const hookPath = path.join(__dirname, "providers", "download-hook.js");
-const hook = fs.existsSync(hookPath) ? require(hookPath) : null;
+let hook = null;
+if (fs.existsSync(hookPath)) {
+  try { hook = require(hookPath); }
+  catch (e) { console.error("No se pudo cargar providers/download-hook.js:", e.message); }
+}
+// Que un error suelto no tumbe el servidor
+process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e));
+process.on("uncaughtException", (e) => console.error("uncaughtException:", e));
 
 const isPrivateIp = (ip) => {
   if (net.isIPv4(ip)) {
@@ -106,6 +113,12 @@ async function resolve(req) {
 
 app.get("/api/platforms", (_q, res) =>
   res.json(Object.entries(providers).map(([id, p]) => ({ id, name: p.name, downloads: Boolean(hook) }))));
+
+// Diagnóstico: abre /api/health en el navegador para ver el estado del servidor
+app.get("/api/health", async (_q, res) => {
+  const status = hook?.status ? await hook.status().catch(e => ({ error: e.message })) : null;
+  res.json({ ok: true, node: process.version, downloads: Boolean(hook), engine: status });
+});
 
 app.post("/api/:platform/analyze", async (req, res, next) => {
   try {
@@ -145,4 +158,8 @@ app.use((e, _q, res, _n) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`MultiDownloader en http://localhost:${port}`));
+app.listen(port, "0.0.0.0", () => {
+  console.log(`MultiDownloader escuchando en el puerto ${port} (Node ${process.version})`);
+  console.log(hook ? "Descargas: activadas (download-hook.js cargado)" : "Descargas: desactivadas (falta providers/download-hook.js)");
+  if (hook?.status) hook.status().then(st => console.log("Motor:", JSON.stringify(st))).catch(e => console.log("Motor: error", e.message));
+});

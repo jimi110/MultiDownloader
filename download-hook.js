@@ -186,6 +186,12 @@ async function downloadWithYtdlp(url, { type, quality }, res) {
 const useCobaltFirst = () => ENGINE_PREF === "cobalt" && COBALT_URL;
 
 module.exports = {
+  // Estado de los motores (lo usa /api/health y el log de arranque)
+  async status() {
+    const st = { ytdlp: null, ffmpeg: FFMPEG === "ffmpeg" ? "sistema" : fs.existsSync(FFMPEG) ? "ffmpeg-static" : "no encontrado", cobalt: Boolean(COBALT_URL), cookies: Boolean(cookiesFile) };
+    try { st.ytdlp = (await run(YTDLP, ["--version"], { timeout: 15000 })).trim(); } catch (e) { st.ytdlp = `no disponible (${e.code || e.message})`; }
+    return st;
+  },
   // Metadatos para plataformas que no tienen oEmbed (p. ej. Instagram sin token de Meta)
   async info(platform, url) {
     try {

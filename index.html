@@ -48,6 +48,26 @@ const PLATFORMS = [
   { id: "otros", name: "Otros", title: "Enlaces de cualquier otra app", hint: "https://… (pega el enlace de cualquier otra app)" },
 ];
 
+// ---- Servidor: comprobar si está despierto (Render gratis se duerme) ----
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+const noBackend = !API && (location.protocol === "file:" || location.hostname.endsWith("github.io"));
+async function pingServer() {
+  try {
+    const r = await fetch(`${API}/api/platforms`, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return false;
+    await r.json();            // si devuelve HTML (página de "arrancando"), esto falla
+    return true;
+  } catch { return false; }
+}
+async function waitForServer(isAlive, maxMs = 150000) {
+  const t0 = Date.now();
+  while (isAlive() && Date.now() - t0 < maxMs) {
+    if (await pingServer()) return true;
+    await sleep(3000);
+  }
+  return false;
+}
+
 const useRoute = () => {
   const [r, setR] = useState(location.hash.slice(1));
   useEffect(() => { const f = () => setR(location.hash.slice(1)); addEventListener("hashchange", f); return () => removeEventListener("hashchange", f); }, []);
@@ -80,19 +100,44 @@ function Platform({ p }) {
   const [state, setState] = useState("idle");
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
+  const [secs, setSecs] = useState(0);
+  const alive = React.useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => {
+    if (state !== "waking") return;
+    setSecs(0);
+    const t = setInterval(() => setSecs(x => x + 1), 1000);
+    return () => clearInterval(t);
+  }, [state]);
+
+  const fail = (m) => { if (alive.current) { setErr(m); setState("error"); } };
 
   const analyze = async (e) => {
     e.preventDefault();
-    if (!url.trim()) { setState("error"); setErr("Pega un enlace para analizarlo."); return; }
-    setState("loading"); setData(null);
+    if (!url.trim()) { fail("Pega un enlace para analizarlo."); return; }
+    if (noBackend) { fail("Esta web se abre desde GitHub Pages o un archivo local, que no tienen backend. Define window.MULTIDOWNLOADER_API con la URL de tu servidor (p. ej. https://multidownloader.onrender.com) o abre la web desde esa URL."); return; }
+    setData(null); setErr(""); setState("loading");
     try {
-      const r = await fetch(`${API}/api/${p.id}/analyze`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url }) });
+      // 1) ¿Está despierto el servidor? Si no, esperamos hasta que responda
+      if (!(await pingServer())) {
+        if (!alive.current) return;
+        setState("waking");
+        const ok = await waitForServer(() => alive.current);
+        if (!alive.current) return;
+        if (!ok) { fail(`El servidor no responde (probé ${(API || location.origin)}/api/platforms). Abre esa dirección en el navegador y revisa en Render → Logs que el despliegue no haya fallado.`); return; }
+        setState("loading");
+      }
+      // 2) Servidor listo: analizamos el enlace
+      const r = await fetch(`${API}/api/${p.id}/analyze`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url }), signal: AbortSignal.timeout(120000) });
       const raw = await r.text();
       let j;
-      try { j = JSON.parse(raw); } catch { throw new Error("El servidor no respondió como se esperaba. Si está en Render gratis, puede estar despertando: espera unos segundos y vuelve a intentarlo."); }
+      try { j = JSON.parse(raw); } catch { throw new Error("El servidor respondió algo inesperado. Inténtalo de nuevo en unos segundos."); }
       if (!r.ok) throw new Error(j.error || "No se pudo analizar el enlace.");
+      if (!alive.current) return;
       setData(j); setState("done");
-    } catch (x) { setErr(x.name === "TypeError" ? "No se pudo conectar con el servidor." : x.message); setState("error"); }
+    } catch (x) {
+      fail(x.name === "TimeoutError" ? "El análisis tardó demasiado. Inténtalo de nuevo." : x.name === "TypeError" ? "No se pudo conectar con el servidor." : x.message);
+    }
   };
 
   const fmts = (t) => (data?.formats || []).filter(f => f.type === t);
@@ -106,9 +151,16 @@ function Platform({ p }) {
       <form onSubmit={analyze} className="mt-8 flex flex-col sm:flex-row gap-3">
         <input value={url} onChange={e => setUrl(e.target.value)} placeholder={p.hint} inputMode="url" autoComplete="off" aria-label="Enlace del contenido"
           className="min-w-0 flex-1 rounded-2xl border border-neutral-800 bg-[#0e0e0e] px-5 py-4 text-base placeholder-neutral-600" />
-        <button className="btn rounded-2xl bg-white px-7 py-4 font-medium text-black hover:bg-neutral-300" disabled={state === "loading"}>Analizar enlace</button>
+        <button className="btn rounded-2xl bg-white px-7 py-4 font-medium text-black hover:bg-neutral-300" disabled={state === "loading" || state === "waking"}>Analizar enlace</button>
       </form>
 
+      {state === "waking" && (
+        <div className="mt-8 rounded-2xl border border-neutral-800 bg-[#0e0e0e] p-5" role="status" aria-live="polite">
+          <div className="bar h-1.5 rounded-full"></div>
+          <p className="mt-3 text-neutral-200">Encendiendo el servidor… <span className="text-neutral-500">{secs} s</span></p>
+          <p className="mt-1 text-sm text-neutral-500">Está en un plan gratuito y se apaga si nadie lo usa. Puede tardar hasta un minuto; en cuanto esté listo, analizo tu enlace automáticamente.</p>
+        </div>
+      )}
       {state === "loading" && <div className="mt-8" role="status"><div className="bar h-1.5 rounded-full"></div><p className="mt-3 text-sm text-neutral-500">Analizando enlace…</p></div>}
       {state === "error" && <p role="alert" className="mt-8 rounded-2xl border border-neutral-700 bg-[#101010] p-5 text-neutral-200">{err}</p>}
 
@@ -144,6 +196,7 @@ function Platform({ p }) {
 
 function App() {
   const r = useRoute();
+  useEffect(() => { if (!noBackend) pingServer(); }, []); // lo despierta en segundo plano al abrir la web
   const p = PLATFORMS.find(x => x.id === r);
   return p ? <Platform key={p.id} p={p} /> : <Home />;
 }
