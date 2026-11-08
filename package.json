@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "postinstall": "node -e \"try{require('./scripts/install-ytdlp.js')}catch(e){console.warn('yt-dlp omitido:',e.message)}\""
+    "postinstall": "node -e \"try{require('./install-ytdlp.js')}catch(e){console.warn('yt-dlp omitido:',e.message)}\""
   },
   "engines": { "node": ">=18" },
   "dependencies": {
