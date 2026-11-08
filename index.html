@@ -28,6 +28,8 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect } = React;
+// Si el frontend está en otro dominio que el backend, define window.MULTIDOWNLOADER_API = "https://tu-servidor" antes de este script
+const API = (window.MULTIDOWNLOADER_API || "").replace(/\/+$/, "");
 
 const Icon = ({ id, size = 40 }) => {
   const p = { width: size, height: size, viewBox: "0 0 40 40", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
@@ -43,6 +45,7 @@ const PLATFORMS = [
   { id: "instagram", name: "Instagram", title: "Reels, vídeos e imágenes de Instagram", hint: "https://www.instagram.com/reel/…" },
   { id: "tiktok", name: "TikTok", title: "Vídeos de TikTok", hint: "https://www.tiktok.com/@usuario/video/…" },
   { id: "suno", name: "Suno AI", title: "Canciones de Suno AI", hint: "https://suno.com/song/…" },
+  { id: "otros", name: "Otros", title: "Enlaces de cualquier otra app", hint: "https://… (pega el enlace de cualquier otra app)" },
 ];
 
 const useRoute = () => {
@@ -57,16 +60,16 @@ function Home() {
       <h1 className="text-5xl sm:text-7xl font-bold tracking-tight leading-[0.95]">MultiDownloader</h1>
       <p className="mt-5 max-w-md text-lg text-neutral-400">Pega un enlace, mira qué hay y descarga lo que la plataforma te permita.</p>
       <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {PLATFORMS.map(p => (
+        {PLATFORMS.filter(p => p.id !== "otros").map(p => (
           <a key={p.id} href={"#" + p.id} className="tile group flex items-center gap-5 rounded-3xl border border-neutral-800 bg-[#0e0e0e] p-7 sm:p-9">
             <span className="text-white"><Icon id={p.id} size={44} /></span>
             <span className="text-2xl font-medium">{p.name}</span>
           </a>
         ))}
-        <div className="flex items-center gap-5 rounded-3xl border border-dashed border-neutral-800 p-7 sm:p-9 text-neutral-500 sm:col-span-2">
-          <Icon id="more" size={44} />
-          <span><span className="block text-xl text-neutral-300">Más plataformas</span><span className="text-sm">Cada plataforma es un módulo del servidor; añadir una nueva no toca las demás.</span></span>
-        </div>
+        <a href="#otros" className="tile flex items-center gap-5 rounded-3xl border border-dashed border-neutral-700 bg-[#0e0e0e] p-7 sm:p-9 sm:col-span-2">
+          <span className="text-white"><Icon id="otros" size={44} /></span>
+          <span><span className="block text-2xl font-medium">Otros</span><span className="text-sm text-neutral-400">Pega el enlace de cualquier otra app o web</span></span>
+        </a>
       </div>
     </main>
   );
@@ -83,19 +86,21 @@ function Platform({ p }) {
     if (!url.trim()) { setState("error"); setErr("Pega un enlace para analizarlo."); return; }
     setState("loading"); setData(null);
     try {
-      const r = await fetch(`/api/${p.id}/analyze`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url }) });
-      const j = await r.json();
+      const r = await fetch(`${API}/api/${p.id}/analyze`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url }) });
+      const raw = await r.text();
+      let j;
+      try { j = JSON.parse(raw); } catch { throw new Error("El servidor no respondió como se esperaba. Si está en Render gratis, puede estar despertando: espera unos segundos y vuelve a intentarlo."); }
       if (!r.ok) throw new Error(j.error || "No se pudo analizar el enlace.");
       setData(j); setState("done");
     } catch (x) { setErr(x.name === "TypeError" ? "No se pudo conectar con el servidor." : x.message); setState("error"); }
   };
 
   const fmts = (t) => (data?.formats || []).filter(f => f.type === t);
-  const dl = (f) => `/api/${p.id}/download?url=${encodeURIComponent(url)}&type=${f.type}&quality=${encodeURIComponent(f.quality || "")}`;
+  const dl = (f) => `${API}/api/${p.id}/download?url=${encodeURIComponent(url)}&type=${f.type}&quality=${encodeURIComponent(f.quality || "")}`;
 
   return (
     <main className="mx-auto max-w-2xl px-5 pt-8 pb-20">
-      <a href="#" className="btn inline-block rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-900">Volver</a>
+      <div className="flex justify-end"><a href="#" className="btn inline-block rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-900">Volver</a></div>
       <div className="mt-12 text-white"><Icon id={p.id} size={52} /></div>
       <h1 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">{p.title}</h1>
       <form onSubmit={analyze} className="mt-8 flex flex-col sm:flex-row gap-3">

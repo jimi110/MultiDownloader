@@ -113,8 +113,10 @@ function formatsFromInfo(info) {
     const max = Math.max(0, ...vids.map(f => f.height || 0));
     if (max === 0) out.push({ type: "video", quality: "best", label: "Mejor calidad" });
     else Object.keys(LABELS).map(Number).sort((a, b) => a - b).forEach(h => {
-      if (h <= max + 8 && vids.some(f => (f.height || 0) >= h - 8)) out.push({ type: "video", quality: String(h), label: LABELS[h] });
+      if (h !== 2160 && h <= max + 8 && vids.some(f => (f.height || 0) >= h - 8)) out.push({ type: "video", quality: String(h), label: LABELS[h] });
     });
+    // 4K siempre visible: si el original no llega a 2160p, se descarga la máxima calidad disponible
+    out.push({ type: "video", quality: "2160", label: max >= 2160 - 8 ? LABELS[2160] : "4K (máx. disponible)" });
   }
   if (hasAudio || vids.length) out.push({ type: "audio", quality: "best", label: "MP3" });
   return out;

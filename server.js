@@ -6,6 +6,8 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const dns = require("dns").promises;
+const net = require("net");
 
 const app = express();
 app.use(express.json({ limit: "10kb" }));
@@ -43,6 +45,11 @@ const providers = {
       return { title: d.title || "Publicación de Instagram", thumbnail: d.thumbnail_url, author: d.author_name, duration: null, formats: [] };
     }
   },
+  // Cualquier otra app: se resuelve con yt-dlp (admite cientos de webs). hosts: null = cualquier dominio público
+  otros: {
+    name: "Otros", hosts: null,
+    async analyze() { throw new AppError("NOT_CONFIGURED", "Los enlaces de otras apps requieren el motor de descarga (yt-dlp).", 501); }
+  },
   suno: {
     name: "Suno AI", hosts: ["suno.com", "suno.ai"],
     async analyze(url) {
@@ -64,14 +71,36 @@ const providers = {
 const hookPath = path.join(__dirname, "providers", "download-hook.js");
 const hook = fs.existsSync(hookPath) ? require(hookPath) : null;
 
-function resolve(req) {
+const isPrivateIp = (ip) => {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split(".").map(Number);
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+  }
+  const v = ip.toLowerCase();
+  if (v.startsWith("::ffff:")) return isPrivateIp(v.slice(7));
+  return v === "::" || v === "::1" || v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe80");
+};
+
+// Para dominios arbitrarios ("otros") evitamos que el servidor acceda a direcciones internas
+async function assertPublicHost(hostname) {
+  const bad = () => new AppError("INVALID_URL", "Ese enlace no es válido o no es público.", 400);
+  if (net.isIP(hostname) || hostname === "localhost" || !hostname.includes(".") || /\.(local|internal|localdomain)$/.test(hostname)) throw bad();
+  let addrs;
+  try { addrs = await dns.lookup(hostname, { all: true }); } catch { throw new AppError("INVALID_URL", "No se pudo encontrar ese dominio.", 400); }
+  if (!addrs.length || addrs.some(a => isPrivateIp(a.address))) throw bad();
+}
+
+async function resolve(req) {
   const id = req.params.platform;
   const p = providers[id];
   if (!p) throw new AppError("UNKNOWN_PLATFORM", "Plataforma no soportada.", 404);
   let u;
   try { u = new URL(String(req.body?.url ?? req.query.url ?? "").trim()); } catch { throw new AppError("INVALID_URL", "El enlace no es válido.", 400); }
-  if (u.protocol !== "https:" || !hostMatches(u.hostname.toLowerCase(), p.hosts))
-    throw new AppError("INVALID_URL", `El enlace no pertenece a ${p.name}.`, 400);
+  const host = u.hostname.toLowerCase();
+  if (u.protocol !== "https:") throw new AppError("INVALID_URL", "El enlace debe empezar por https://", 400);
+  if (p.hosts) {
+    if (!hostMatches(host, p.hosts)) throw new AppError("INVALID_URL", `El enlace no pertenece a ${p.name}.`, 400);
+  } else await assertPublicHost(host);
   return { id, p, url: u.toString() };
 }
 
@@ -80,13 +109,13 @@ app.get("/api/platforms", (_q, res) =>
 
 app.post("/api/:platform/analyze", async (req, res, next) => {
   try {
-    const { id, p, url } = resolve(req);
+    const { id, p, url } = await resolve(req);
     let meta;
     try { meta = await p.analyze(url); }
     catch (err) {
       // Si el proveedor no puede leer los metadatos (p. ej. Instagram sin token de Meta), probamos con yt-dlp
       if (!hook?.info) throw err;
-      try { meta = { formats: [], ...(await hook.info(id, url)) }; } catch { throw err; }
+      try { meta = { formats: [], ...(await hook.info(id, url)) }; } catch (e2) { throw err.code === "NOT_CONFIGURED" ? e2 : err; }
     }
     if (hook?.formats) {
       meta.formats = await hook.formats(id, url);
@@ -98,13 +127,15 @@ app.post("/api/:platform/analyze", async (req, res, next) => {
 
 app.get("/api/:platform/download", async (req, res, next) => {
   try {
-    const { id, url } = resolve(req);
+    const { id, url } = await resolve(req);
     if (!hook) throw new AppError("NOT_CONFIGURED", "La descarga no está configurada en este servidor.", 501);
     const type = req.query.type === "audio" ? "audio" : "video";
     const quality = String(req.query.quality || "");
     await hook.download(id, url, { type, quality }, res);
   } catch (e) { next(e); }
 });
+
+app.use("/api", (_q, res) => res.status(404).json({ code: "NOT_FOUND", error: "Ruta de la API no encontrada." }));
 
 app.use((e, _q, res, _n) => {
   if (res.headersSent) return res.end();
