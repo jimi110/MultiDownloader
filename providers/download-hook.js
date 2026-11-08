@@ -5,6 +5,7 @@
 // Variables de entorno (todas opcionales):
 //   YTDLP_PATH         ruta al binario de yt-dlp (por defecto ./bin/yt-dlp o el del PATH)
 //   YTDLP_COOKIES_B64  cookies en formato Netscape codificadas en base64 (ayuda con YouTube/Instagram)
+//   (alternativa) Secret File de Render llamado cookies.txt -> se detecta solo en /etc/secrets/cookies.txt
 //   YTDLP_PROXY        proxy para yt-dlp, p. ej. http://usuario:clave@host:puerto
 //   COBALT_API_URL     URL de tu instancia de Cobalt, p. ej. https://cobalt.midominio.com/
 //   COBALT_API_KEY     clave de la API de Cobalt (si tu instancia la exige)
@@ -33,13 +34,19 @@ const COBALT_URL = process.env.COBALT_API_URL || "";
 const ENGINE_PREF = (process.env.DOWNLOAD_ENGINE || "ytdlp").toLowerCase();
 const MAX_FILESIZE = process.env.MAX_FILESIZE || "500M";
 
+// Cookies (opcional): por variable en base64, o por archivo secreto de Render (/etc/secrets/cookies.txt)
 let cookiesFile = null;
-if (process.env.YTDLP_COOKIES_B64) {
-  try {
-    cookiesFile = path.join(os.tmpdir(), "md-cookies.txt");
-    fs.writeFileSync(cookiesFile, Buffer.from(process.env.YTDLP_COOKIES_B64, "base64"), { mode: 0o600 });
-  } catch (e) { console.error("No se pudieron escribir las cookies:", e.message); cookiesFile = null; }
-}
+try {
+  const target = path.join(os.tmpdir(), "md-cookies.txt");   // copia escribible (yt-dlp actualiza las cookies)
+  const secret = process.env.YTDLP_COOKIES_FILE || "/etc/secrets/cookies.txt";
+  if (process.env.YTDLP_COOKIES_B64) {
+    fs.writeFileSync(target, Buffer.from(process.env.YTDLP_COOKIES_B64, "base64"), { mode: 0o600 });
+    cookiesFile = target;
+  } else if (fs.existsSync(secret)) {
+    fs.copyFileSync(secret, target); fs.chmodSync(target, 0o600);
+    cookiesFile = target;
+  }
+} catch (e) { console.error("No se pudieron preparar las cookies:", e.message); cookiesFile = null; }
 
 const baseArgs = () => {
   const a = ["--no-playlist", "--no-warnings", "--no-color", "--socket-timeout", "20", "--ffmpeg-location", FFMPEG];
@@ -182,6 +189,48 @@ async function downloadWithYtdlp(url, { type, quality }, res) {
   } catch (e) { await cleanup(); throw e; }
 }
 
+// ---------- Suno: MP3 directo (sin yt-dlp) ----------
+// Las páginas públicas de Suno publican la URL del audio (og:audio, en cdn*.suno.ai). La usamos tal cual.
+const sunoCache = new Map();
+const SUNO_UA = "Mozilla/5.0 (compatible; MultiDownloader/1.0)";
+const okSunoHost = (u) => { try { const x = new URL(u); return x.protocol === "https:" && /(^|\.)suno\.(ai|com)$/.test(x.hostname); } catch { return false; } };
+const decodeHtml = (t) => String(t || "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+function metaContent(html, prop) {
+  for (const tag of html.match(/<meta\b[^>]*>/gi) || []) {
+    const key = (tag.match(/(?:property|name)=["']([^"']+)["']/i) || [])[1];
+    if (key && key.toLowerCase() === prop) return decodeHtml((tag.match(/content=["']([^"']*)["']/i) || [])[1]);
+  }
+  return null;
+}
+
+async function resolveSuno(url) {
+  const hit = sunoCache.get(url);
+  if (hit && Date.now() - hit.t < TTL) return hit.v;
+  const r = await fetch(url, { headers: { "user-agent": SUNO_UA, "accept-language": "en" }, redirect: "follow", signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new HookError("NOT_FOUND", "La canción no está disponible.", 404);
+  const html = await r.text();
+  let audio = metaContent(html, "og:audio") || metaContent(html, "og:audio:url");
+  if (!audio || !okSunoHost(audio)) {
+    const id = ((r.url || "").match(/\/song\/([0-9a-f-]{36})/i) || html.match(/cdn\d*\.suno\.ai\/([0-9a-f-]{36})\.(?:mp3|m4a)/i) || url.match(/\/song\/([0-9a-f-]{36})/i) || [])[1];
+    audio = id ? `https://cdn1.suno.ai/${id}.mp3` : null;
+  }
+  if (!audio) throw new HookError("NOT_FOUND", "No se encontró el audio público de esta canción.", 404);
+  const v = { audio, title: (metaContent(html, "og:title") || "suno").trim() };
+  sunoCache.set(url, { t: Date.now(), v });
+  if (sunoCache.size > 200) sunoCache.delete(sunoCache.keys().next().value);
+  return v;
+}
+
+async function downloadSuno(url, res) {
+  const { audio, title } = await resolveSuno(url);
+  const r = await fetch(audio, { headers: { "user-agent": SUNO_UA }, signal: AbortSignal.timeout(120000) });
+  if (!r.ok || !r.body) throw new HookError("NOT_FOUND", "No se pudo obtener el MP3 de Suno.", 502);
+  const name = `${title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 80) || "suno"}.mp3`;
+  sendHeaders(res, name, r.headers.get("content-type") || "audio/mpeg", r.headers.get("content-encoding") ? null : r.headers.get("content-length"));
+  await pipeline(Readable.fromWeb(r.body), res);
+}
+
 // ---------- API pública del gancho ----------
 const useCobaltFirst = () => ENGINE_PREF === "cobalt" && COBALT_URL;
 
@@ -201,6 +250,10 @@ module.exports = {
   },
 
   async formats(platform, url) {
+    if (platform === "suno") {
+      try { await resolveSuno(url); return [{ type: "audio", quality: "best", label: "MP3" }]; }
+      catch (e) { console.error("[suno] directo falló, pruebo yt-dlp:", e.message); }
+    }
     if (!useCobaltFirst()) {
       try { return formatsFromInfo(await getInfo(url)); }
       catch (e) { if (!COBALT_URL) throw friendly(e); }
@@ -217,6 +270,10 @@ module.exports = {
   async download(platform, url, opts, res) {
     const release = acquire();
     try {
+      if (platform === "suno" && opts.type === "audio") {
+        try { await downloadSuno(url, res); return; }
+        catch (e) { if (res.headersSent) throw e; console.error("[suno] directo falló, pruebo yt-dlp:", e.message); }
+      }
       const engines = useCobaltFirst() ? ["cobalt", "ytdlp"] : COBALT_URL ? ["ytdlp", "cobalt"] : ["ytdlp"];
       let last;
       for (const eng of engines) {
