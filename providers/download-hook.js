@@ -6,7 +6,7 @@
 //   YTDLP_PATH         ruta al binario de yt-dlp (por defecto ./bin/yt-dlp o el del PATH)
 //   YTDLP_COOKIES_B64  cookies en formato Netscape codificadas en base64 (ayuda con YouTube/Instagram)
 //   (alternativa) Secret File de Render llamado cookies.txt -> se detecta solo en /etc/secrets/cookies.txt
-//   YTDLP_PROXY        proxy para yt-dlp, p. ej. http://usuario:clave@host:puerto
+//   YTDLP_PROXY        proxy para yt-dlp (solo YouTube salvo YTDLP_PROXY_ALL=1), p. ej. http://usuario:clave@host:puerto
 //   COBALT_API_URL     URL de tu instancia de Cobalt, p. ej. https://cobalt.midominio.com/
 //   COBALT_API_KEY     clave de la API de Cobalt (si tu instancia la exige)
 //   DOWNLOAD_ENGINE    "ytdlp" (por defecto) o "cobalt"
@@ -48,10 +48,13 @@ try {
   }
 } catch (e) { console.error("No se pudieron preparar las cookies:", e.message); cookiesFile = null; }
 
-const baseArgs = () => {
+// El proxy (de pago, se cobra por tráfico) se usa solo para YouTube, que es la plataforma que bloquea.
+// Pon YTDLP_PROXY_ALL=1 si quieres usarlo para todas.
+const isYoutube = (u) => { try { return /(^|\.)(youtube\.com|youtu\.be)$/i.test(new URL(u).hostname); } catch { return false; } };
+const baseArgs = (url) => {
   const a = ["--no-playlist", "--no-warnings", "--no-color", "--socket-timeout", "20", "--ffmpeg-location", FFMPEG];
   if (cookiesFile) a.push("--cookies", cookiesFile);
-  if (process.env.YTDLP_PROXY) a.push("--proxy", process.env.YTDLP_PROXY);
+  if (process.env.YTDLP_PROXY && (process.env.YTDLP_PROXY_ALL === "1" || isYoutube(url))) a.push("--proxy", process.env.YTDLP_PROXY);
   return a;
 };
 
@@ -65,22 +68,28 @@ const acquire = () => {
   return () => { if (!done) { done = true; running--; } };
 };
 
-function run(cmd, args, { timeout = 60000 } = {}) {
+function run(cmd, args, { timeout = 60000, signal } = {}) {
   return new Promise((resolve, reject) => {
-    const p = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
-    let out = "", err = "";
-    const t = setTimeout(() => { p.kill("SIGKILL"); reject(new HookError("TIMEOUT", "La operación tardó demasiado.", 504)); }, timeout);
-    p.stdout.on("data", d => { out += d; if (out.length > 20e6) p.kill("SIGKILL"); });
+    // En Linux/Mac lanzamos el proceso en su propio grupo para poder matarlo junto con sus hijos (ffmpeg)
+    const p = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"], detached: !isWin });
+    let out = "", err = "", finished = false;
+    const kill = () => { try { if (!isWin && p.pid) process.kill(-p.pid, "SIGKILL"); else p.kill("SIGKILL"); } catch { try { p.kill("SIGKILL"); } catch {} } };
+    const end = (fn, v) => { if (finished) return; finished = true; clearTimeout(t); signal?.removeEventListener("abort", onAbort); fn(v); };
+    const onAbort = () => { kill(); end(reject, new HookError("ABORTED", "Descarga cancelada.", 499)); };   // el usuario canceló o cerró la pestaña
+    const t = setTimeout(() => { kill(); end(reject, new HookError("TIMEOUT", "La operación tardó demasiado.", 504)); }, timeout);
+    if (signal) { if (signal.aborted) onAbort(); else signal.addEventListener("abort", onAbort, { once: true }); }
+    p.stdout.on("data", d => { out += d; if (out.length > 20e6) kill(); });
     p.stderr.on("data", d => { err += d; if (err.length > 1e6) err = err.slice(-5e5); });
-    p.on("error", e => { clearTimeout(t); reject(e.code === "ENOENT" ? new HookError("NO_YTDLP", "yt-dlp no está instalado en el servidor.", 501) : e); });
-    p.on("close", code => { clearTimeout(t); code === 0 ? resolve(out) : reject(Object.assign(new Error(err.trim().split("\n").pop() || "Error de yt-dlp"), { stderr: err })); });
+    p.on("error", e => end(reject, e.code === "ENOENT" ? new HookError("NO_YTDLP", "yt-dlp no está instalado en el servidor.", 501) : e));
+    p.on("close", code => end(code === 0 ? resolve : reject, code === 0 ? out : Object.assign(new Error(err.trim().split("\n").pop() || "Error de yt-dlp"), { stderr: err })));
   });
 }
 
 const friendly = (e) => {
   if (e instanceof HookError) return e;
   const s = String(e.stderr || e.message || "");
-  if (/sign in to confirm|not a bot|cookies/i.test(s)) return new HookError("BLOCKED", "La plataforma pidió verificación (bloquea IPs de servidores). Configura YTDLP_COOKIES_B64 o un proxy/Cobalt.", 502);
+  console.error("[yt-dlp]", s.trim().split("\n").pop());   // el detalle técnico queda en los Logs de Render
+  if (/sign in to confirm|not a bot|cookies/i.test(s)) return new HookError("BLOCKED", "YouTube está bloqueando las peticiones del servidor en este momento. Puede volver a funcionar más tarde: inténtalo de nuevo en unas horas.", 502);
   if (/private|login required|requires login|members-only/i.test(s)) return new HookError("PRIVATE", "El contenido es privado o requiere iniciar sesión.", 403);
   if (/unavailable|not found|404|removed|deleted/i.test(s)) return new HookError("NOT_FOUND", "El contenido no está disponible o fue eliminado.", 404);
   if (/unsupported url/i.test(s)) return new HookError("UNSUPPORTED", "Ese enlace no es compatible.", 400);
@@ -95,7 +104,7 @@ const TTL = 5 * 60 * 1000;
 async function getInfo(url) {
   const hit = cache.get(url);
   if (hit && Date.now() - hit.t < TTL) return hit.v;
-  const out = await run(YTDLP, [...baseArgs(), "-J", "--skip-download", "--", url], { timeout: 45000 });
+  const out = await run(YTDLP, [...baseArgs(url), "-J", "--skip-download", "--", url], { timeout: 45000 });
   const v = JSON.parse(out);
   cache.set(url, { t: Date.now(), v });
   if (cache.size > 200) cache.delete(cache.keys().next().value);
@@ -166,8 +175,10 @@ function sendHeaders(res, filename, mime, length) {
 async function downloadWithYtdlp(url, { type, quality }, res) {
   const dir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "md-"));
   const cleanup = () => fs.promises.rm(dir, { recursive: true, force: true }).catch(() => {});
+  const ac = new AbortController();
+  res.on("close", () => { if (!res.writableEnded) ac.abort(); });   // si el usuario cancela, matamos yt-dlp y liberamos el hueco
   try {
-    const args = [...baseArgs(), "--max-filesize", MAX_FILESIZE, "--windows-filenames", "-o", path.join(dir, "%(title).80B [%(id)s].%(ext)s")];
+    const args = [...baseArgs(url), "--max-filesize", MAX_FILESIZE, "--windows-filenames", "-o", path.join(dir, "%(title).80B [%(id)s].%(ext)s")];
     if (type === "audio") {
       args.push("-f", "bestaudio/best", "-x", "--audio-format", "mp3", "--audio-quality", "0");
     } else {
@@ -177,7 +188,7 @@ async function downloadWithYtdlp(url, { type, quality }, res) {
       args.push("-f", `b${cap}[acodec!=none]/bv*${cap}+ba/b${cap}`, "--merge-output-format", "mp4");
     }
     args.push("--", url);
-    await run(YTDLP, args, { timeout: 5 * 60 * 1000 });
+    await run(YTDLP, args, { timeout: 5 * 60 * 1000, signal: ac.signal });
 
     const files = (await fs.promises.readdir(dir)).filter(f => !f.endsWith(".part") && !f.endsWith(".ytdl"));
     if (!files.length) throw new HookError("DOWNLOAD", "No se generó ningún archivo.", 502);
@@ -229,6 +240,16 @@ async function downloadSuno(url, res) {
   const name = `${title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 80) || "suno"}.mp3`;
   sendHeaders(res, name, r.headers.get("content-type") || "audio/mpeg", r.headers.get("content-encoding") ? null : r.headers.get("content-length"));
   await pipeline(Readable.fromWeb(r.body), res);
+}
+
+// ---------- Mantener yt-dlp al día ----------
+// Las plataformas cambian a menudo y las versiones viejas dejan de funcionar. Solo para el binario local (./bin).
+if (YTDLP === localBin && !process.env.YTDLP_NO_UPDATE) {
+  const update = () => run(YTDLP, ["-U"], { timeout: 120000 })
+    .then(o => console.log("[yt-dlp] actualización:", o.trim().split("\n").pop()))
+    .catch(e => console.warn("[yt-dlp] no se pudo actualizar:", e.message));
+  setTimeout(update, 15000).unref();
+  setInterval(update, 24 * 3600 * 1000).unref();
 }
 
 // ---------- API pública del gancho ----------
@@ -283,6 +304,7 @@ module.exports = {
           return;
         } catch (e) {
           last = e;
+          if (res.destroyed || res.closed) return;   // el cliente canceló: nada más que hacer
           if (res.headersSent) throw e; // ya empezó a enviarse: no se puede reintentar
           console.error(`[${eng}] ${platform}:`, e.message);
         }
