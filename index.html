@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MultiDownloader</title>
+<meta name="theme-color" content="#070707">
+<meta name="description" content="Pega un enlace, mira qué hay y descarga lo que la plataforma te permita.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MultiDownloader">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700&display=swap" rel="stylesheet">
@@ -27,6 +36,9 @@
 <body>
 <div id="root"></div>
 <script>
+  if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+<script>
   // Si abres esta web desde GitHub Pages, pon aquí la URL de tu servidor en Render (sin "/" al final).
   // Si la abres desde la propia URL de Render, déjala vacía.
   window.MULTIDOWNLOADER_API = "";
@@ -34,7 +46,7 @@
 <script type="text/babel">
 const { useState, useEffect } = React;
 // Si el frontend está en otro dominio que el backend, define window.MULTIDOWNLOADER_API = "https://tu-servidor" antes de este script
-const API = (window.MULTIDOWNLOADER_API || "https://multidownloader-5uo3.onrender.com").replace(/\/+$/, "");
+const API = (window.MULTIDOWNLOADER_API || "").replace(/\/+$/, "");
 
 const Icon = ({ id, size = 40 }) => {
   const p = { width: size, height: size, viewBox: "0 0 40 40", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
@@ -73,15 +85,37 @@ async function waitForServer(isAlive, maxMs = 150000) {
   return false;
 }
 
+// ---- Instalar como app (PC y móvil) ----
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const useInstall = () => {
+  const [evt, setEvt] = useState(null);
+  const [installed, setInstalled] = useState(isStandalone());
+  useEffect(() => {
+    const onPrompt = (e) => { e.preventDefault(); setEvt(e); };
+    const onInstalled = () => { setEvt(null); setInstalled(true); };
+    addEventListener("beforeinstallprompt", onPrompt);
+    addEventListener("appinstalled", onInstalled);
+    return () => { removeEventListener("beforeinstallprompt", onPrompt); removeEventListener("appinstalled", onInstalled); };
+  }, []);
+  const install = async () => { if (!evt) return; evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); };
+  return { canInstall: !installed && Boolean(evt), iosHint: !installed && isIOS && !evt, install };
+};
+
 const useRoute = () => {
   const [r, setR] = useState(location.hash.slice(1));
   useEffect(() => { const f = () => setR(location.hash.slice(1)); addEventListener("hashchange", f); return () => removeEventListener("hashchange", f); }, []);
   return r;
 };
 
-function Home() {
+function Home({ app }) {
   return (
-    <main className="mx-auto max-w-5xl px-5 pt-16 pb-20 sm:pt-28">
+    <main className="mx-auto max-w-5xl px-5 pt-8 pb-20 sm:pt-12">
+      <div className="flex min-h-[2.5rem] items-center justify-end">
+        {app.canInstall && <button type="button" onClick={app.install} className="btn rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-900">Instalar app</button>}
+        {app.iosHint && <p className="text-sm text-neutral-500">Para instalarla: Compartir → Añadir a pantalla de inicio</p>}
+      </div>
+      <div className="h-8 sm:h-14"></div>
       <h1 className="text-5xl sm:text-7xl font-bold tracking-tight leading-[0.95]">MultiDownloader</h1>
       <p className="mt-5 max-w-md text-lg text-neutral-400">Pega un enlace, mira qué hay y descarga lo que la plataforma te permita.</p>
       <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -115,12 +149,23 @@ function Platform({ p }) {
     return () => clearInterval(t);
   }, [state]);
 
+  const [dlj, setDlj] = useState(null);   // descarga en curso: { phase: preparing|downloading|done|error, ... }
+  const ctrl = React.useRef(null);
+  useEffect(() => () => ctrl.current?.abort(), []);   // si sales de la pantalla, se cancela
+  useEffect(() => {
+    if (dlj?.phase !== "preparing") return;
+    const t = setInterval(() => setDlj(d => (d && d.phase === "preparing" ? { ...d, secs: d.secs + 1 } : d)), 1000);
+    return () => clearInterval(t);
+  }, [dlj?.phase]);
+  const busy = dlj && (dlj.phase === "preparing" || dlj.phase === "downloading");
+
   const fail = (m) => { if (alive.current) { setErr(m); setState("error"); } };
 
   const analyze = async (e) => {
     e.preventDefault();
     if (!url.trim()) { fail("Pega un enlace para analizarlo."); return; }
     if (noBackend) { fail("Esta web se abre desde GitHub Pages o un archivo local, que no tienen backend. Edita la línea window.MULTIDOWNLOADER_API al principio del index.html con la URL de tu servidor de Render (p. ej. https://multidownloader.onrender.com), o abre la web desde esa URL."); return; }
+    ctrl.current?.abort(); setDlj(null);
     setData(null); setErr(""); setState("loading");
     try {
       // 1) ¿Está despierto el servidor? Si no, esperamos hasta que responda
@@ -142,6 +187,49 @@ function Platform({ p }) {
       setData(j); setState("done");
     } catch (x) {
       fail(x.name === "TimeoutError" ? "El análisis tardó demasiado. Inténtalo de nuevo." : x.name === "TypeError" ? "No se pudo conectar con el servidor." : x.message);
+    }
+  };
+
+  const fileName = (r, fallback) => {
+    const cd = r.headers.get("content-disposition") || "";
+    const star = cd.match(/filename\*=UTF-8''([^;]+)/i);
+    if (star) { try { return decodeURIComponent(star[1]); } catch {} }
+    const plain = cd.match(/filename="?([^";]+)"?/i);
+    return plain ? plain[1] : fallback;
+  };
+  const mb = (n) => (n / 1048576).toFixed(1);
+
+  const startDownload = async (f) => {
+    if (busy) return;
+    const ac = new AbortController(); ctrl.current = ac;
+    setDlj({ phase: "preparing", label: f.label, secs: 0 });
+    try {
+      const r = await fetch(dl(f), { signal: ac.signal });   // tarda mientras el servidor prepara el archivo
+      if (!r.ok) {
+        let m = "No se pudo descargar el archivo.";
+        try { m = (await r.json()).error || m; } catch {}
+        throw new Error(m);
+      }
+      const total = Number(r.headers.get("content-length")) || 0;
+      const reader = r.body.getReader(), chunks = [];
+      let received = 0, last = 0;
+      setDlj({ phase: "downloading", label: f.label, received: 0, total });
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value); received += value.length;
+        if (Date.now() - last > 150) { last = Date.now(); setDlj({ phase: "downloading", label: f.label, received, total }); }
+      }
+      const blob = new Blob(chunks, { type: r.headers.get("content-type") || "application/octet-stream" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName(r, f.type === "audio" ? "audio.mp3" : "video.mp4");
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      setDlj({ phase: "done", label: f.label });
+    } catch (x) {
+      if (x.name === "AbortError") { setDlj(null); return; }
+      setDlj({ phase: "error", msg: x.name === "TypeError" ? "Se perdió la conexión con el servidor." : x.message });
     }
   };
 
@@ -186,10 +274,29 @@ function Platform({ p }) {
                   <div key={t}>
                     <h3 className="mb-2 text-sm text-neutral-400">{label}</h3>
                     <div className="flex flex-wrap gap-2">
-                      {fmts(t).map(f => <a key={f.type + f.quality} href={dl(f)} download className="btn rounded-full border border-neutral-700 px-5 py-2.5 hover:bg-white hover:text-black">{f.label}</a>)}
+                      {fmts(t).map(f => <button key={f.type + f.quality} type="button" onClick={() => startDownload(f)} disabled={busy} className="btn rounded-full border border-neutral-700 px-5 py-2.5 enabled:hover:bg-white enabled:hover:text-black disabled:opacity-40 disabled:cursor-not-allowed">{f.label}</button>)}
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {dlj && (
+              <div className="mt-6 rounded-2xl bg-[#171717] p-4" role="status" aria-live="polite">
+                {dlj.phase === "preparing" && (<>
+                  <div className="bar h-1.5 rounded-full"></div>
+                  <p className="mt-3 text-sm text-neutral-200">Preparando {dlj.label}… <span className="text-neutral-500">{dlj.secs} s</span></p>
+                  <p className="mt-1 text-xs text-neutral-500">El servidor está procesando el archivo. No hace falta pulsar otra vez: la descarga empezará sola.</p>
+                </>)}
+                {dlj.phase === "downloading" && (<>
+                  {dlj.total ? (
+                    <div className="h-1.5 overflow-hidden rounded-full bg-[#1c1c1c]"><div className="h-full rounded-full bg-white" style={{ width: Math.min(100, (dlj.received / dlj.total) * 100) + "%" }}></div></div>
+                  ) : <div className="bar h-1.5 rounded-full"></div>}
+                  <p className="mt-3 text-sm text-neutral-200">Descargando {dlj.label}… <span className="text-neutral-500">{dlj.total ? `${Math.round((dlj.received / dlj.total) * 100)} % · ${mb(dlj.received)} / ${mb(dlj.total)} MB` : `${mb(dlj.received)} MB`}</span></p>
+                </>)}
+                {dlj.phase === "done" && <p className="text-sm text-neutral-200">Descarga completada. Revisa tu carpeta de descargas.</p>}
+                {dlj.phase === "error" && <p className="text-sm text-neutral-200">{dlj.msg}</p>}
+                {busy && <div className="mt-3 flex justify-end"><button type="button" onClick={() => ctrl.current?.abort()} className="btn rounded-full border border-neutral-700 px-4 py-1.5 text-xs text-neutral-300 hover:bg-neutral-900">Cancelar</button></div>}
               </div>
             )}
           </div>
@@ -201,9 +308,10 @@ function Platform({ p }) {
 
 function App() {
   const r = useRoute();
+  const app = useInstall();
   useEffect(() => { if (!noBackend) pingServer(); }, []); // lo despierta en segundo plano al abrir la web
   const p = PLATFORMS.find(x => x.id === r);
-  return p ? <Platform key={p.id} p={p} /> : <Home />;
+  return p ? <Platform key={p.id} p={p} /> : <Home app={app} />;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>

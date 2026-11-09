@@ -11,7 +11,12 @@ const net = require("net");
 
 const app = express();
 app.use(express.json({ limit: "10kb" }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders(res, file) {
+    if (file.endsWith(".webmanifest")) res.type("application/manifest+json");
+    if (file.endsWith("sw.js")) res.setHeader("Cache-Control", "no-cache");   // que las actualizaciones del service worker lleguen siempre
+  }
+}));
 
 // CORS: permite que la web esté en otro dominio (p. ej. GitHub Pages) y use este servidor como API.
 // Para restringirlo, define ALLOWED_ORIGIN=https://tuusuario.github.io en Render.
