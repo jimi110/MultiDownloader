@@ -43,6 +43,10 @@
   // Si la abres desde la propia URL de Render, déjala vacía.
   window.MULTIDOWNLOADER_API = "https://multidownloader-5uo3.onrender.com";
 </script>
+<script>
+  // App "Comprimir vídeo" (se muestra dentro del botón Comprimir vídeo)
+  window.COMPRIMIR_HTML = "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"theme-color\" content=\"#070707\"><title>Comprimir vídeo<\/title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&display=swap\" rel=\"stylesheet\">\n<style>\n:root{--bg:#070707;--card:#0e0e0e;--hi:#141414;--line:#262626;--t:#f2f2f2;--m:#a3a3a3;--d:#737373;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}\nhtml{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}\nbody{margin:0;background:var(--bg);color:var(--t);font:16px/1.45 'Bricolage Grotesque',system-ui,sans-serif}\nmain{max-width:672px;margin:0 auto;padding:40px 20px 80px}\nh1{font-size:clamp(36px,10vw,56px);line-height:.95;letter-spacing:-.025em;margin:0;font-weight:700}\n.sub{color:var(--m);font-size:18px;margin:16px 0 32px;max-width:26em}\nh2{font-size:15px;font-weight:500;color:var(--m);margin:28px 0 12px}\n.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;margin-bottom:12px}\n.grid{display:grid;gap:12px}#modes{grid-template-columns:1fr 1fr}#modes .tile{flex-direction:column;align-items:flex-start;gap:12px;padding:18px}#modes .tt{font-size:18px}#modes .sz{margin:0;font-size:16px}\n.tile{display:flex;align-items:center;gap:18px;width:100%;text-align:left;background:var(--card);color:var(--t);border:1px solid var(--line);border-radius:24px;padding:20px;cursor:pointer;font:inherit;transition:transform .25s,background .25s,border-color .25s}\n.tile:hover{transform:translateY(-2px);background:var(--hi);border-color:#4a4a4a}.tile.on{border-color:#fff;background:var(--hi)}\n.tile>.i{width:34px;height:34px;stroke-width:1.5}\n#drop{border-style:dashed;border-color:#404040;padding:30px}\n.tt{display:block;font-size:20px;font-weight:500;line-height:1.2}.ts{display:block;font-size:14px;color:var(--m)}\n.sz{margin-left:auto;font-size:18px;font-weight:500;white-space:nowrap}\n.i{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;flex:none}\n.l{display:inline-flex;align-items:center;gap:8px;color:var(--m);font-size:14px}.spec{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px}\n.pill{border:1px solid #404040;background:none;color:var(--t);border-radius:999px;padding:8px 16px;font:inherit;font-size:14px;cursor:pointer;transition:background .2s}.pill:hover{background:#171717}.pill.on{background:#fff;color:#000;border-color:#fff}\n.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}.ch{border-radius:16px;padding:8px 14px;text-align:center;font-size:16px}.ch small{display:block;font-size:12px;color:var(--d)}.ch.on small{color:#444}\n.rg{display:flex;gap:10px;align-items:center}.rg input[type=range]{flex:1;accent-color:#fff}\ninput,select{font:inherit;font-size:15px;color:var(--t);background:#171717;border:1px solid var(--line);border-radius:12px;padding:8px 10px}input[type=number]{width:96px}input[type=checkbox]{width:20px;height:20px;accent-color:#fff}\n.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #1c1c1c}.row .l{color:var(--t);font-size:15px}\n.grp{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--d);margin:16px 0 0}.grp:first-child{margin-top:0}\n.big{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-top:4px}.big small{font-size:14px;font-weight:400;color:var(--m);letter-spacing:0}\n.go{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;background:#fff;color:#000;border-radius:999px;padding:16px;font:inherit;font-size:17px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .2s,transform .2s}.go:hover{background:#d4d4d4;transform:translateY(-1px)}\n.go.g{background:none;color:var(--t);border:1px solid #404040;margin-top:10px}.go.g:hover{background:#171717}\n.bar{position:relative;overflow:hidden;height:6px;border-radius:6px;background:#1c1c1c;margin:16px 0}.bar i{display:block;height:100%;width:0;background:#fff;border-radius:6px;transition:width .2s}\n.bar::after{content:\"\";position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,#fff5,transparent);animation:sl 1.1s linear infinite}@keyframes sl{from{transform:translateX(-100%)}to{transform:translateX(350%)}}\n.sp{display:inline-block;width:16px;height:16px;border:2px solid #333;border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite}@keyframes r{to{transform:rotate(1turn)}}\n.hide{display:none!important}.nm{min-width:0;flex:1}.nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}\n:focus-visible{outline:2px solid #fff;outline-offset:3px}\n@media(prefers-reduced-motion:reduce){.tile,.go{transition:none}.bar::after,.sp{animation:none}}\n<\/style>\n<script defer src=\"https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js\"><\/script>\n<script defer src=\"https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.js\"><\/script>\n<\/head><body><main>\n<svg width=\"0\" height=\"0\" style=\"position:absolute\" aria-hidden=\"true\"><defs>\n<symbol id=\"i-up\" viewBox=\"0 0 24 24\"><path d=\"M12 16V4M7 9l5-5 5 5M4 20h16\"/><\/symbol>\n<symbol id=\"i-spark\" viewBox=\"0 0 24 24\"><path d=\"M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z\"/><\/symbol>\n<symbol id=\"i-pct\" viewBox=\"0 0 24 24\"><path d=\"M19 5L5 19\"/><circle cx=\"7\" cy=\"7\" r=\"2.5\"/><circle cx=\"17\" cy=\"17\" r=\"2.5\"/><\/symbol>\n<symbol id=\"i-sl\" viewBox=\"0 0 24 24\"><path d=\"M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0\"/><circle cx=\"15\" cy=\"6\" r=\"2\"/><circle cx=\"9\" cy=\"12\" r=\"2\"/><circle cx=\"17\" cy=\"18\" r=\"2\"/><\/symbol>\n<symbol id=\"i-chat\" viewBox=\"0 0 24 24\"><path d=\"M5 5h14a2 2 0 012 2v8a2 2 0 01-2 2h-7l-5 4v-4H5a2 2 0 01-2-2V7a2 2 0 012-2z\"/><\/symbol>\n<symbol id=\"i-play\" viewBox=\"0 0 24 24\"><path d=\"M7 4l13 8-13 8z\"/><\/symbol>\n<symbol id=\"i-x\" viewBox=\"0 0 24 24\"><path d=\"M6 6l12 12M18 6L6 18\"/><\/symbol>\n<symbol id=\"i-ok\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12.5l3 3 5-6\"/><\/symbol>\n<symbol id=\"i-dl\" viewBox=\"0 0 24 24\"><path d=\"M12 4v12M7 11l5 5 5-5M4 20h16\"/><\/symbol>\n<symbol id=\"i-re\" viewBox=\"0 0 24 24\"><path d=\"M20 11a8 8 0 10-2.3 5.7M20 4v7h-7\"/><\/symbol>\n<symbol id=\"i-video\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"14\" height=\"14\" rx=\"2\"/><path d=\"M17 10l4-2v8l-4-2\"/><\/symbol>\n<symbol id=\"i-box\" viewBox=\"0 0 24 24\"><path d=\"M12 3l8 4.5v9L12 21l-8-4.5v-9z\"/><path d=\"M4 7.5l8 4.5 8-4.5M12 12v9\"/><\/symbol>\n<symbol id=\"i-clock\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/><\/symbol>\n<symbol id=\"i-scan\" viewBox=\"0 0 24 24\"><path d=\"M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4\"/><\/symbol>\n<symbol id=\"i-film\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4\"/><\/symbol>\n<symbol id=\"i-pulse\" viewBox=\"0 0 24 24\"><path d=\"M3 12h4l3-8 4 16 3-8h4\"/><\/symbol>\n<symbol id=\"i-vol\" viewBox=\"0 0 24 24\"><path d=\"M4 9v6h4l5 4V5L8 9z\"/><path d=\"M16.5 9a4 4 0 010 6\"/><\/symbol>\n<symbol id=\"i-mute\" viewBox=\"0 0 24 24\"><path d=\"M4 9v6h4l5 4V5L8 9z\"/><path d=\"M17 9l5 6M22 9l-5 6\"/><\/symbol>\n<symbol id=\"i-head\" viewBox=\"0 0 24 24\"><path d=\"M4 15v-3a8 8 0 0116 0v3\"/><rect x=\"3\" y=\"14\" width=\"4\" height=\"6\" rx=\"1\"/><rect x=\"17\" y=\"14\" width=\"4\" height=\"6\" rx=\"1\"/><\/symbol>\n<symbol id=\"i-code\" viewBox=\"0 0 24 24\"><path d=\"M8 8l-4 4 4 4M16 8l4 4-4 4\"/><\/symbol>\n<symbol id=\"i-bolt\" viewBox=\"0 0 24 24\"><path d=\"M13 3L5 13h6l-1 8 8-10h-6z\"/><\/symbol>\n<symbol id=\"i-warn\" viewBox=\"0 0 24 24\"><path d=\"M12 4l9 16H3z\"/><path d=\"M12 10v4M12 17h0\"/><\/symbol>\n<\/defs><\/svg>\n<h1>Comprimir vídeo<\/h1>\n<p class=\"sub\">Elige un vídeo, elige cómo reducirlo y descárgalo. Todo ocurre en tu dispositivo, sin subir nada.<\/p>\n<label id=\"drop\" class=\"tile\" for=\"f\"><svg class=\"i\"><use href=\"#i-up\"/><\/svg><span><span class=\"tt\">Elegir vídeo<\/span><span class=\"ts\">o suelta el archivo aquí · MP4, MOV o MKV<\/span><\/span><\/label><input id=\"f\" type=\"file\" hidden>\n<div id=\"app\" class=\"hide\">\n<div class=\"card\" style=\"display:flex;gap:14px;align-items:center\"><span class=\"nm\" id=\"info\"><\/span><button class=\"pill\" id=\"chg\">Cambiar<\/button><\/div>\n<h2>¿Cómo quieres comprimirlo?<\/h2>\n<div class=\"grid\" id=\"modes\">\n<button class=\"tile on\" data-m=\"rec\"><svg class=\"i\"><use href=\"#i-spark\"/><\/svg><span><span class=\"tt\">Recomendada<\/span><span class=\"ts\">Mejor equilibrio entre calidad y peso<\/span><\/span><span class=\"sz\"><\/span><\/button>\n<button class=\"tile\" data-m=\"pct\"><svg class=\"i\"><use href=\"#i-pct\"/><\/svg><span><span class=\"tt\">Por porcentaje<\/span><span class=\"ts\">Tú eliges cuánto reducir<\/span><\/span><span class=\"sz\"><\/span><\/button>\n<button class=\"tile\" data-m=\"cus\"><svg class=\"i\"><use href=\"#i-sl\"/><\/svg><span><span class=\"tt\">Personalizada<\/span><span class=\"ts\">Todos los ajustes a mano<\/span><\/span><span class=\"sz\"><\/span><\/button>\n<button class=\"tile\" data-m=\"dc\"><svg class=\"i\"><use href=\"#i-chat\"/><\/svg><span><span class=\"tt\">Discord<\/span><span class=\"ts\">Menos de 19 MB, con buena calidad<\/span><\/span><span class=\"sz\"><\/span><\/button>\n<\/div>\n<div class=\"card\" id=\"opt\" style=\"margin-top:12px\"><\/div>\n<label class=\"card\" style=\"display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer\"><span class=\"l\" style=\"color:var(--t)\"><svg class=\"i\"><use href=\"#i-vol\"/><\/svg>Mantener siempre el audio<\/span><input type=\"checkbox\" id=\"ka\" checked><\/label>\n<div class=\"card\" id=\"sum\"><\/div>\n<button class=\"go\" id=\"go\"><svg class=\"i\"><use href=\"#i-play\"/><\/svg>Comprimir<\/button>\n<\/div>\n<div class=\"card hide\" id=\"prog\"><div class=\"tt\"><span class=\"sp\"><\/span>&nbsp; Comprimiendo <b id=\"pp\">0 %<\/b><\/div><div class=\"bar\"><i id=\"pb\"><\/i><\/div><div id=\"pe\" class=\"spec\" style=\"margin:0 0 16px\"><\/div><button class=\"go g\" id=\"cn\" style=\"margin:0\"><svg class=\"i\"><use href=\"#i-x\"/><\/svg>Cancelar<\/button><\/div>\n<div class=\"card hide\" id=\"done\"><\/div>\n<div class=\"card hide\" id=\"err\" style=\"color:var(--m)\"><\/div>\n<\/main>\n<script>\nconst $=s=>document.querySelector(s),MB=1048576,even=n=>Math.max(2,Math.round(n/2)*2);\nconst ic=n=>`<svg class=\"i\"><use href=\"#i-${n}\"/><\/svg>`;\nconst fmt=b=>b>=1073741824?(b/1073741824).toFixed(2)+' GB':(b/MB).toFixed(b>=1e8?0:1)+' MB';\nconst dt=s=>{s=Math.round(s);const h=s/3600|0,m=s%3600/60|0;return(h?h+' h ':'')+m+' min '+s%60+' s'};\nlet F,M,MK,KA=true,mode='rec',pct=50,stop=0,C={res:0,fps:0,codec:'avc',vb:1000,ab:128,mono:false,hw:'prefer-hardware'};\nfunction plan(tb,fps=30){\n const tot=tb*8/M.d*.985,ab=Math.max(KA?32e3:0,tot>7e5?128e3:tot>4e5?96e3:tot>2e5?64e3:tot>1e5?40e3:0),vb=Math.max(tot-ab,8e3),sh=Math.min(M.w,M.h);\n let f=fps>31&&vb/(M.w*M.h*fps)>=.08?fps:Math.min(fps,30),res=0;\n const L=[2160,1440,1080,720,480,360,240,144].filter(x=>x<sh),bp=x=>vb/(M.w*M.h*(x/sh)**2*f);\n if(bp(sh)<.07&&L.length){res=L.find(x=>bp(x)>=.07)||L.find(x=>x<=480&&bp(x)>=.04)||L[L.length-1];const b=bp(res);if(b<.045)f=Math.min(f,24);if(b<.03)f=Math.min(f,15)}\n return{vb,ab,res,fps:f,codec:'avc',mono:ab<=64e3,hw:'prefer-hardware'}}\nfunction cur(m=mode){let P,tb;\n if(m=='rec'){const vb=Math.min(Math.max(.075*M.w*M.h*30,15e4),Math.max(M.sb-128e3,15e4)*.6);tb=Math.min((vb+128e3)*M.d/8*1.015,M.size*.7);P=plan(tb)}\n else if(m=='pct')P=plan(tb=M.size*(1-pct/100));\n else if(m=='dc')P=plan(tb=Math.min(18.3e6,M.size*.85));\n else{P={...C,vb:C.vb*1e3,ab:C.ab*1e3};tb=(P.vb+P.ab)*M.d/8*1.015}\n return{P,tb}}\nfunction upd(){const{P,tb}=cur(),r=Math.round((1-tb/M.size)*100);\n for(const m of['rec','pct','cus','dc'])$('[data-m='+m+'] .sz').textContent=m=='dc'?'≤ 19 MB':'≈ '+fmt(cur(m).tb);\n $('#sum').innerHTML=`<div class=\"ts\">Tamaño estimado<\/div><div class=\"big\">≈ ${fmt(tb)} <small>desde ${fmt(M.size)} · ${r>0?'−'+r:'+'+-r} %<\/small><\/div><div class=\"spec\"><span class=\"l\">${ic('scan')}${P.res?P.res+'p':'Resolución original'}<\/span><span class=\"l\">${ic('film')}${P.fps?Math.round(P.fps):'Orig.'} fps<\/span><span class=\"l\">${ic('pulse')}${Math.round(P.vb/1e3)} kbps<\/span><span class=\"l\">${ic(P.ab?'vol':'mute')}${P.ab?Math.round(P.ab/1e3)+' kbps'+(P.mono?' · mono':''):'Sin audio'}<\/span><\/div>${tb>=M.size?'<div class=\"l\" style=\"margin-top:10px\">'+ic('warn')+'No reduce el tamaño<\/div>':''}`}\nconst R=(l,c)=>`<div class=\"row\"><span class=\"l\">${l}<\/span>${c}<\/div>`;\nconst S=(k,l,o)=>R(l,`<select data-k=\"${k}\">${o.map(([v,t])=>`<option value=\"${v}\"${v==C[k]?' selected':''}>${t}<\/option>`).join('')}<\/select>`);\nfunction ropt(){const o=$('#opt');\n if(mode=='rec')o.innerHTML='<div class=\"ts\">Mantiene la resolución si es posible y ajusta bitrate, fps y audio para conservar la mejor calidad por el menor peso.<\/div>';\n else if(mode=='dc')o.innerHTML='<div class=\"ts\">Se queda por debajo de 19 MB con el mejor equilibrio: primero ajusta el bitrate, luego la resolución y solo si hace falta los fps y el audio. Si el resultado se pasa, reintenta solo.<\/div>';\n else if(mode=='pct')o.innerHTML=`<div class=\"ts\">Reducir el peso un…<\/div><div class=\"chips\">${[30,50,60,70,80,90].map(p=>`<button class=\"pill ch${p==pct?' on':''}\" data-p=\"${p}\">${p} %<small>${fmt(M.size*(1-p/100))}<\/small><\/button>`).join('')}<\/div><div class=\"rg\"><input type=\"range\" id=\"pr\" min=\"1\" max=\"99\" value=\"${pct}\"><input type=\"number\" id=\"pn\" min=\"1\" max=\"99\" value=\"${pct}\">%<\/div>`;\n else o.innerHTML='<div class=\"grp\">Vídeo<\/div>'+S('res',ic('scan')+'Resolución',[[0,'Original'],[2160,'2160p'],[1440,'1440p'],[1080,'1080p'],[720,'720p'],[480,'480p'],[360,'360p'],[240,'240p']])+S('fps',ic('film')+'FPS',[[0,'Original'],[60,'60'],[30,'30'],[24,'24'],[15,'15']])+S('codec',ic('code')+'Códec',[['avc','H.264 (compatible)'],['hevc','H.265 (más pequeño)'],['vp9','VP9'],['av1','AV1 (lento)']])+R(ic('pulse')+'Bitrate',`<span><input type=\"number\" data-k=\"vb\" min=\"8\" step=\"50\" value=\"${C.vb}\"> kbps<\/span>`)+'<div class=\"grp\">Audio<\/div>'+S('ab',ic('vol')+'Bitrate',[[0,'Sin audio'],[32,'32 kbps'],[64,'64 kbps'],[96,'96 kbps'],[128,'128 kbps'],[192,'192 kbps'],[256,'256 kbps']])+R(ic('head')+'Mono',`<input type=\"checkbox\" data-k=\"mono\"${C.mono?' checked':''}>`)+'<div class=\"grp\">Rendimiento<\/div>'+S('hw',ic('bolt')+'Aceleración',[['no-preference','Automática'],['prefer-hardware','Hardware'],['prefer-software','Software']])}\n$('#modes').onclick=e=>{const b=e.target.closest('.tile');if(!b)return;document.querySelectorAll('#modes .tile').forEach(x=>x.classList.toggle('on',x==b));mode=b.dataset.m;ropt();upd()};\n$('#opt').onclick=e=>{const b=e.target.closest('.ch');if(b){pct=+b.dataset.p;ropt();upd()}};\n$('#opt').oninput=e=>{const t=e.target;\n if(t.id=='pr'||t.id=='pn'){pct=Math.min(99,Math.max(1,+t.value||1));$('#pr').value=pct;if(t.id=='pr')$('#pn').value=pct;document.querySelectorAll('.ch').forEach(c=>c.classList.toggle('on',+c.dataset.p==pct))}\n else if(t.dataset.k){const k=t.dataset.k;C[k]=t.type=='checkbox'?t.checked:['res','fps','vb','ab'].includes(k)?+t.value:t.value}\n upd()};\nconst DROP=`${ic('up')}<span><span class=\"tt\">Elegir vídeo<\/span><span class=\"ts\">o suelta el archivo aquí · MP4, MOV o MKV<\/span><\/span>`;\nconst showErr=m=>{const e=$('#err');e.innerHTML=ic('warn')+' ';e.append(m);e.classList.remove('hide')};\nasync function load(f){if(!f)return;$('#err').classList.add('hide');$('#drop').innerHTML='<span class=\"sp\"><\/span><span class=\"tt\">Leyendo vídeo…<\/span>';\n let v={};MK=0;try{MK=await mkvOpen(f)}catch(e){$('#drop').innerHTML=DROP;return showErr(e)}\n if(MK){const t=MK.videoTracks[0];v={duration:MK.duration/1e6,videoWidth:t.video.width,videoHeight:t.video.height}}\n else{try{const i=await mp4Info(f);if(i&&i.d>0&&i.w>0)v={duration:i.d,videoWidth:i.w,videoHeight:i.h}}catch(_){}\n if(!(v.duration>0)){v=document.createElement('video');const u=URL.createObjectURL(f);v.preload='metadata';v.muted=true;v.src=u;\n await new Promise(r=>{v.onloadedmetadata=r;v.onerror=r;setTimeout(r,8000)});URL.revokeObjectURL(u)}}\n M={size:f.size,d:v.duration,w:v.videoWidth,h:v.videoHeight};\n if(!isFinite(M.d)||!M.w){$('#drop').innerHTML=DROP;return showErr('No se pudo leer este vídeo. Prueba con MP4, MOV o MKV. [duración='+M.d+', ancho='+M.w+', tipo='+(f.type||'?')+']')}\n F=f;M.sb=M.size*8/M.d;const p=cur('rec').P;C.vb=Math.round(p.vb/1e3);C.ab=Math.round(p.ab/1e3);\n $('#info').innerHTML=`<b>${f.name.replace(/<\/g,'&lt;')}<\/b><span class=\"spec\" style=\"margin-top:6px\"><span class=\"l\">${ic('box')}${fmt(M.size)}<\/span><span class=\"l\">${ic('clock')}${dt(M.d)}<\/span><span class=\"l\">${ic('scan')}${M.w}×${M.h}<\/span><\/span>`;\n $('#drop').classList.add('hide');$('#app').classList.remove('hide');ropt();upd()}\n$('#f').onchange=e=>{const f=e.target.files[0];e.target.value='';load(f)};\n$('#chg').onclick=()=>$('#f').click();$('#ka').onchange=e=>{KA=e.target.checked;upd()};\naddEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>{e.preventDefault();if(!F)load(e.dataTransfer.files[0])});\n\nconst MA=new Set([0x18538067,0x1654AE6B,0xAE,0xE0,0xE1,0x1549A966,0x1F43B675,0xA0]),ui=d=>d.reduce((a,x)=>a*256+x,0),hx=(x,i)=>x[i].toString(16).padStart(2,'0');\nconst fl=d=>{const v=new DataView(d.buffer,d.byteOffset,d.length);return d.length==4?v.getFloat32(0):v.getFloat64(0)};\nconst rd=async(f,o,n)=>new Uint8Array(await f.slice(o,Math.min(f.size,o+n)).arrayBuffer());\nconst vi=(b,p,id)=>{let l=1,m=128;while(l<8&&!(b[p]&m)){l++;m>>=1}let v=id?b[p]:b[p]&(m-1),u=!id&&v==m-1;for(let i=1;i<l;i++){v=v*256+b[p+i];u=u&&b[p+i]==255}return[v,l,u]};\nfunction walk(b,s,e,f){while(s<e-2){const[i,a]=vi(b,s,1),[z,c,u]=vi(b,s+a),d=s+a+c,t=u?e:Math.min(e,d+z);if(MA.has(i)){if(f(i,0,d,t,s)||walk(b,d,t,f))return 1}else if(f(i,b.subarray(d,t),d,t,s))return 1;s=t}}\nasync function mp4Info(f){let o=0,n=0;while(o<f.size&&n++<99){const h=await rd(f,o,16),v=new DataView(h.buffer),z=v.getUint32(0),y=v.getUint32(4);let L=z,H=8;if(z==1){L=Number(v.getBigUint64(8));H=16}else if(!z)L=f.size-o;if(L<8)return;\n if(y==0x6d6f6f76){const b=await rd(f,o+H,L-H),d=new DataView(b.buffer);let ts=0,du=0,w=0,hh=0;\n  const sc=(s,e,fn)=>{while(s+8<=e){const z=d.getUint32(s),t=d.getUint32(s+4);if(z<8)return;fn(t,s+8,Math.min(e,s+z));s+=z}};\n  sc(0,b.length,(t,s,e)=>{if(t==0x6d766864){const v1=d.getUint8(s);ts=d.getUint32(s+(v1?20:12));du=v1?Number(d.getBigUint64(s+24)):d.getUint32(s+16)}\n   else if(t==0x7472616b)sc(s,e,(t,s,e)=>{if(t==0x746b6864&&!w){const a=d.getUint32(e-8)/65536,c=d.getUint32(e-4)/65536;if(a>0){w=a;hh=c}}})});\n  return{d:du/ts,w,h:hh}}\n o+=L}}\nasync function mkvOpen(f){\n const b=await rd(f,0,4*MB);if(ui(b.subarray(0,4))!=0x1a45dfa3)return;\n let sc=1e6,du=0,T=[],t,co=-1;\n walk(b,0,b.length,(i,d,s,e,p)=>{if(i==0x1F43B675){co=p;return 1}\n  if(i==0xAE)T.push(t={});else if(i==0x2AD7B1)sc=ui(d);else if(i==0x4489)du=fl(d);else if(t&&d){\n   if(i==0xD7)t.n=ui(d);else if(i==0x83)t.ty=ui(d);else if(i==0x86)t.c=new TextDecoder().decode(d);else if(i==0x63A2)t.p=d;else if(i==0x23E383)t.dd=ui(d);else if(i==0xB0)t.w=ui(d);else if(i==0xBA)t.h=ui(d);else if(i==0xB5)t.sr=fl(d);else if(i==0x9F)t.ch=ui(d)}});\n const D=du*sc/1e9,V=T.find(x=>x.ty==1),A=T.find(x=>x.ty==2&&/^A_(AAC|OPUS|MPEG\\/L3)/.test(x.c));\n if(co<0||!V)throw'No se pudo leer este MKV (sin pista de vídeo)';if(!(D>0&&isFinite(D)))throw'Este MKV no indica su duración y no se puede procesar';\n const p=V.p||[],c=V.c,vc=c=='V_MPEG4/ISO/AVC'?'avc1.'+hx(p,1)+hx(p,2)+hx(p,3):c=='V_MPEGH/ISO/HEVC'?'hvc1.'+(p[1]&31)+'.'+((p[1]&31)==2?4:6)+'.L'+p[12]+'.B0':c=='V_VP9'?'vp09.00.51.08':c=='V_AV1'?'av01.0.08M.08':0;\n if(!vc)throw'Códec de vídeo no compatible en MKV ('+c+')';\n const fps=V.dd?1e9/V.dd:30;\n return{co,sc,fps,duration:D*1e6,timescale:1e6,\n  videoTracks:[{id:V.n,codec:vc,desc:/AVC|HEVC|AV1/.test(c)?V.p:0,nb_samples:fps*D,duration:D*1e6,timescale:1e6,video:{width:V.w,height:V.h}}],\n  audioTracks:A?[{id:A.n,codec:A.c=='A_AAC'?'mp4a.40.2':A.c=='A_OPUS'?'opus':'mp3',desc:A.c!='A_MPEG/L3'?A.p:0,audio:{sample_rate:A.sr||48e3,channel_count:A.ch||2}}]:[]}}\n\nasync function run(P,onp){\n const mp4=MP4Box.createFile(),q=[];let info,er,mux,ve,vd,ae,ad,vt,at,w,h,tf,sf,nxt=-1,fc=0,last=0,k=0,skip=0,mk=0,nv=0,fe=0;const rel={},DS=window.DataStream||MP4Box.DataStream;\n mp4.onError=e=>console.warn('mp4box',e);mp4.onReady=i=>info=i;mp4.onSamples=(id,_,s)=>{for(const x of s)q.push([id,x])};\n const MC=new MessageChannel(),W=()=>new Promise(r=>{MC.port1.onmessage=()=>r();MC.port2.postMessage(0)}),S1=()=>new Promise(r=>setTimeout(r,1)),chk=()=>{if(stop)throw'cancel';if(er)throw er};\n const tk=id=>mp4.getTrackById(id).mdia.minf.stbl.stsd.entries[0];\n const ds=b=>{if(!b)return;const s=new DS(undefined,0,DS.BIG_ENDIAN);b.write(s);return new Uint8Array(s.buffer,8)};\n const setup=async()=>{\n  vt=info.videoTracks[0];at=info.audioTracks[0];if(!vt)throw'No hay pista de vídeo';\n  const e=mk?{}:tk(vt.id),cw=vt.video.width,ch=vt.video.height,sh=Math.min(cw,ch),s=P.res&&P.res<sh?P.res/sh:1;\n  w=even(cw*s);h=even(ch*s);sf=vt.nb_samples/(vt.duration/vt.timescale);tf=Math.min(sf,P.fps||sf);\n  const vdc={codec:vt.codec,codedWidth:cw,codedHeight:ch,optimizeForLatency:true,description:vt.desc||ds(e.avcC||e.hvcC||e.vpcC||e.av1C)};\n  if(!(await VideoDecoder.isConfigSupported(vdc)).supported)throw'Este navegador no puede decodificar este vídeo';\n  const cfg=c=>({...{avc:{codec:w*h>2200000?'avc1.640033':'avc1.64002A',avc:{format:'avc'}},hevc:{codec:'hvc1.1.6.L153.B0',hevc:{format:'hevc'}},vp9:{codec:'vp09.00.51.08'},av1:{codec:'av01.0.08M.08'}}[c],width:w,height:h,bitrate:Math.round(P.vb),framerate:Math.round(tf),bitrateMode:'variable',latencyMode:'quality',hardwareAcceleration:P.hw});\n  let codec=P.codec,vc=cfg(codec);if(P.hw=='prefer-hardware'&&!(await VideoEncoder.isConfigSupported(vc)).supported){P={...P,hw:'no-preference'};vc=cfg(codec)}\n  if(!(await VideoEncoder.isConfigSupported(vc)).supported){codec='avc';vc=cfg('avc');if(!(await VideoEncoder.isConfigSupported(vc)).supported)throw'Este navegador no puede codificar vídeo'}\n  let ac=0,ach=0;\n  if(at&&P.ab){try{const d=mk?0:tk(at.id).esds,sr=at.audio.sample_rate,c=at.audio.channel_count;ach=P.mono?1:Math.min(c,2);\n   const adc={codec:at.codec,sampleRate:sr,numberOfChannels:c,description:at.desc||(d&&d.esd.descs[0].descs[0].data)},aec={codec:'mp4a.40.2',sampleRate:sr,numberOfChannels:ach,bitrate:Math.round(P.ab),aac:{format:'aac'}};\n   if((await AudioDecoder.isConfigSupported(adc)).supported&&(await AudioEncoder.isConfigSupported(aec)).supported)ac={adc,aec,sr}}catch(_){}\n   if(!ac)skip=1}\n  const m=vt.matrix||[],rot=m[0]==0&&m[1]==65536?90:m[0]==-65536?180:m[0]==0&&m[1]==-65536?270:0;\n  mux=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec,width:w,height:h,rotation:rot},audio:ac?{codec:'aac',numberOfChannels:ach,sampleRate:ac.sr}:undefined,fastStart:'in-memory',firstTimestampBehavior:'offset'});\n  ve=new VideoEncoder({output:(c,m)=>{try{mux.addVideoChunk(c,m);nv++}catch(x){er=x}},error:x=>er=x});ve.configure(vc);\n  const cv=new OffscreenCanvas(w,h),cx=cv.getContext('2d');cx.imageSmoothingQuality='high';\n  vd=new VideoDecoder({output:f=>{last=f.timestamp;\n   if(tf<sf-.5){if(f.timestamp<nxt-1){f.close();return}nxt=Math.max(nxt,f.timestamp)+1e6/tf}\n   let g=f;if(f.displayWidth!==w||f.displayHeight!==h){cx.drawImage(f,0,0,w,h);g=new VideoFrame(cv,{timestamp:f.timestamp,...(f.duration?{duration:f.duration}:{})})}\n   ve.encode(g,{keyFrame:fc++%Math.max(1,Math.round(tf*5))==0});if(g!==f)g.close();f.close()},error:x=>er=x});vd.configure(vdc);\n  if(ac){ae=new AudioEncoder({output:(c,m)=>{try{mux.addAudioChunk(c,m)}catch(x){er=x}},error:x=>er=x});ae.configure(ac.aec);\n   ad=new AudioDecoder({output:a=>{const n=a.numberOfFrames,c=a.numberOfChannels,o=new Float32Array(n*ach),t=new Float32Array(n);\n    for(let i=0;i<c;i++){a.copyTo(t,{planeIndex:i,format:'f32-planar'});if(ach==1)for(let j=0;j<n;j++)o[j]+=t[j]/c;else if(i<ach)o.set(t,i*n)}\n    const b=new AudioData({format:'f32-planar',sampleRate:a.sampleRate,numberOfFrames:n,numberOfChannels:ach,timestamp:a.timestamp,data:o});ae.encode(b);b.close();a.close()},error:x=>er=x});ad.configure(ac.adc)}\n  if(!mk){mp4.setExtractionOptions(vt.id,null,{nbSamples:300});if(ac)mp4.setExtractionOptions(at.id,null,{nbSamples:300});mp4.start()}};\n const drain=async()=>{while(q.length){chk();const[id,s]=q.shift();\n   while(ve.encodeQueueSize>24||vd.decodeQueueSize>24||(ae&&ae.encodeQueueSize>40)){await S1();chk()}\n   const ts=s.cts*1e6/s.timescale,du=s.duration*1e6/s.timescale;if(id==vt.id)fe=Math.max(fe,ts);\n   if(id==vt.id)vd.decode(new EncodedVideoChunk({type:s.is_sync?'key':'delta',timestamp:ts,duration:du,data:s.data}));\n   else if(ad)ad.decode(new EncodedAudioChunk({type:'key',timestamp:ts,duration:du,data:s.data}));\n   rel[id]=s.number+1;\n   if(++k%4==0){onp(Math.min(.99,Math.max(last,fe)/1e6/M.d));if(!mk&&k%32==0)for(const i in rel)mp4.releaseUsedSamples(+i,rel[i]);await W()}}};\n const mkvRead=async()=>{let o=info.co,tc=0,lb,n=0;const sc=info.sc,cb=(i,d)=>{\n   if(i==0xA0)lb=0;else if(i==0xE7)tc=ui(d);else if(i==0x9B)lb&&(lb.duration=ui(d)*sc/1e3);else if(i==0xFB)lb&&(lb.is_sync=false);\n   else if((i==0xA3||i==0xA1)&&d){const[id,l]=vi(d,0),fg=d[l+2];if((fg&6)||(id!=vt.id&&!(at&&id==at.id)))return;\n    const x={cts:(tc+(d[l]<<24>>16|d[l+1]))*sc/1e3,timescale:1e6,duration:id==vt.id?1e6/info.fps:0,is_sync:i==0xA3?!!(fg&128):true,data:d.subarray(l+3),number:n++};q.push([id,x]);if(i==0xA1)lb=x}};\n  while(o<F.size){chk();const h=await rd(F,o,16),[i,a]=vi(h,0,1),[z,c,u]=vi(h,a);let e=a+c+z,b;\n   if(i!=0x1F43B675){o+=a+c+(u?0:z);continue}\n   if(u){b=await rd(F,o,16*MB);e=b.length;for(let x=a+c;x<e-3;x++)if(b[x]==0x1f&&b[x+1]==0x43&&b[x+2]==0xb6&&b[x+3]==0x75){e=x;break}}else{b=await rd(F,o,e);e=b.length}\n   walk(b,0,e,cb);o+=e;await drain()}};\n try{\n  if(MK){info=MK;mk=1;await setup();await mkvRead()}\n  else{let off=0;const CH=8*MB;\n   while(off<F.size){chk();const b=await F.slice(off,off+CH).arrayBuffer();b.fileStart=off;mp4.appendBuffer(b);off+=b.byteLength;\n    if(!info)onp(0,'Leyendo archivo… '+Math.round(off/F.size*100)+' %');\n    if(info&&!vt)await setup();if(vt)await drain()}\n   if(!info)throw'Formato no compatible (usa MP4, MOV o MKV)';\n   mp4.flush()}\n  await drain();onp(.99);\n  await vd.flush();await ve.flush();if(ad){await ad.flush();await ae.flush()}\n  chk();if(!nv)throw'No se pudo leer ningún fotograma de este vídeo';\n  mux.finalize();const buf=mux.target.buffer;if(buf.byteLength<2048)throw'El archivo resultante está vacío';onp(1);\n  return{blob:new Blob([buf],{type:'video/mp4'}),size:buf.byteLength,skip}\n }finally{for(const x of[vd,ve,ad,ae])try{x&&x.state!='closed'&&x.close()}catch(_){}}}\n\n$('#cn').onclick=()=>stop=1;\n$('#go').onclick=async()=>{\n if(!window.VideoEncoder||!window.MP4Box||!window.Mp4Muxer)return showErr('Navegador no compatible o librerías aún cargando. Usa Chrome, Edge o Safari actual.');\n stop=0;$('#err').classList.add('hide');$('#done').classList.add('hide');$('#app').classList.add('hide');$('#prog').classList.remove('hide');\n let wl;try{wl=await navigator.wakeLock.request('screen')}catch(_){}\n const t0=performance.now();\n const onp=(p,lb)=>{const s=(performance.now()-t0)/1e3,sp=p*M.d/s;$('#pp').textContent=Math.round(p*100)+' %';$('#pb').style.width=p*100+'%';$('#pe').innerHTML=`<span class=\"l\">${ic('bolt')}${p>0?sp.toFixed(1)+'× más rápido que el vídeo':(lb||'Preparando…')}<\/span><span class=\"l\">${ic('clock')}${p>.02?'Quedan '+dt(s/p-s):'Calculando…'}<\/span>`};\n let{P,tb}=cur(),r;\n try{for(let i=0;i<3;i++){onp(0);r=await run(P,onp);if(mode!='dc'||r.size<=19e6)break;tb*=19e6/r.size*.9;P=plan(tb)}\n  const u=URL.createObjectURL(r.blob),pc=Math.round((1-r.size/M.size)*100);\n  $('#done').innerHTML=`<div class=\"l\">${ic('ok')}Listo<\/div><div class=\"big\">${fmt(r.size)} <small>desde ${fmt(M.size)} · ${pc>0?'−'+pc:'+'+-pc} %<\/small><\/div>${r.skip?'<div class=\"l\" style=\"margin-top:10px\">'+ic('mute')+'Audio omitido (formato no compatible)<\/div>':''}${mode=='dc'&&r.size>19e6?'<div class=\"l\" style=\"margin-top:10px\">'+ic('warn')+'Sigue por encima de 19 MB: el vídeo es demasiado largo<\/div>':''}<div style=\"margin-top:20px\"><a class=\"go\" href=\"${u}\" download=\"${F.name.replace(/\\.[^.]+$/,'')}-comprimido.mp4\">${ic('dl')}Descargar<\/a><button class=\"go g\" onclick=\"location.reload()\">${ic('re')}Otro vídeo<\/button><\/div>`;\n  $('#done').classList.remove('hide')\n }catch(e){if(e!='cancel')showErr(e&&e.message||String(e));$('#app').classList.remove('hide')}\n $('#prog').classList.add('hide');try{wl&&wl.release()}catch(_){}};\n<\/script><\/body><\/html>\n";
+</script>
 <script type="text/babel">
 const { useState, useEffect } = React;
 // Si el frontend está en otro dominio que el backend, define window.MULTIDOWNLOADER_API = "https://tu-servidor" antes de este script
@@ -53,7 +57,7 @@ const Icon = ({ id, size = 40 }) => {
   if (id === "youtube") return <svg {...p}><rect x="4" y="9" width="32" height="22" rx="7"/><path d="M17 15l8 5-8 5z" fill="currentColor"/></svg>;
   if (id === "instagram") return <svg {...p}><rect x="6" y="6" width="28" height="28" rx="9"/><circle cx="20" cy="20" r="6.5"/><circle cx="28.5" cy="11.5" r="1" fill="currentColor"/></svg>;
   if (id === "tiktok") return <svg {...p}><path d="M22 7v18.5a5.5 5.5 0 1 1-5.5-5.5"/><path d="M22 7c.5 4 3 6.5 7.500 7"/></svg>;
-  if (id === "libre") return <svg {...p}><path d="M15 29V10l16-3v18"/><circle cx="11" cy="29" r="4"/><circle cx="27" cy="25" r="4"/></svg>;
+  if (id === "comprimir") return <svg {...p}><path d="M8 15h8V7M32 15h-8V7M8 25h8v8M32 25h-8v8"/></svg>;
   if (id === "suno") return <svg {...p}><path d="M8 17v6M14 11v18M20 6v28M26 13v14M32 17v6"/></svg>;
   return <svg {...p}><circle cx="20" cy="20" r="14" strokeDasharray="3 5"/><path d="M20 13v14M13 20h14"/></svg>;
 };
@@ -141,9 +145,9 @@ function Home({ app }) {
             <span className="text-2xl font-medium">{p.name}</span>
           </a>
         ))}
-        <a href="#libre" className="tile flex items-center gap-5 rounded-3xl border border-neutral-800 bg-[#0e0e0e] p-7 sm:p-9">
-          <span className="text-white"><Icon id="libre" size={44} /></span>
-          <span><span className="block text-2xl font-medium">Música libre</span><span className="text-sm text-neutral-400">Sin copyright, lista para tus vídeos</span></span>
+        <a href="#comprimir" className="tile flex items-center gap-5 rounded-3xl border border-neutral-800 bg-[#0e0e0e] p-7 sm:p-9">
+          <span className="text-white"><Icon id="comprimir" size={44} /></span>
+          <span><span className="block text-2xl font-medium">Comprimir vídeo</span><span className="text-sm text-neutral-400">Reduce su peso sin subir nada</span></span>
         </a>
         <a href="#otros" className="tile flex items-center gap-5 rounded-3xl border border-dashed border-neutral-700 bg-[#0e0e0e] p-7 sm:p-9">
           <span className="text-white"><Icon id="otros" size={44} /></span>
@@ -326,203 +330,12 @@ function Platform({ p }) {
   );
 }
 
-function FreeMusic() {
-  const [q, setQ] = useState("");
-  const [category, setCategory] = useState("music");
-  const [lic, setLic] = useState("credito");
-  const [items, setItems] = useState([]);
-  const [meta, setMeta] = useState({ page: 0, pageCount: 0 });
-  const [state, setState] = useState("idle");   // idle | waking | loading | done | error
-  const [err, setErr] = useState("");
-  const [note, setNote] = useState("");
-  const [secs, setSecs] = useState(0);
-  const [dlId, setDlId] = useState(null);
-  const [dlPct, setDlPct] = useState(null);
-  const [copied, setCopied] = useState(null);
-  const alive = React.useRef(true);
-  const last = React.useRef({ q: "", category: "music", lic: "credito" });
-  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  useEffect(() => {
-    if (state !== "waking") return;
-    setSecs(0);
-    const t = setInterval(() => setSecs(x => x + 1), 1000);
-    return () => clearInterval(t);
-  }, [state]);
-
-  const search = async (query, page, replace) => {
-    setNote("");
-    if (noBackend) { setErr(NO_BACKEND_MSG); setState("error"); return; }
-    setErr(""); setState("loading");
-    try {
-      const up = await ensureServer(() => alive.current, () => alive.current && setState("waking"));
-      if (!alive.current) return;
-      if (!up) { setErr(`El servidor no responde (probé ${(API || location.origin)}/api/platforms). Revisa en Render que el despliegue esté en marcha.`); setState("error"); return; }
-      setState("loading");
-      const params = new URLSearchParams({ q: query.q, page: String(page), category: query.category, lic: query.lic });
-      const r = await fetch(`${API}/api/libre/search?${params}`, { signal: AbortSignal.timeout(30000) });
-      const raw = await r.text();
-      let j;
-      try { j = JSON.parse(raw); } catch { throw new Error("El servidor respondió algo inesperado. Inténtalo de nuevo en unos segundos."); }
-      if (!r.ok) throw new Error(j.error || "No se pudo buscar.");
-      if (!alive.current) return;
-      setItems(prev => (replace ? j.results : [...prev, ...j.results]));
-      setMeta({ page: j.page, pageCount: j.pageCount });
-      setState("done");
-    } catch (x) {
-      if (!alive.current) return;
-      setErr(x.name === "TimeoutError" ? "La búsqueda tardó demasiado. Inténtalo de nuevo." : x.name === "TypeError" ? "No se pudo conectar con el servidor." : x.message);
-      setState("error");
-    }
-  };
-
-  const run = (query) => { last.current = query; setItems([]); setMeta({ page: 0, pageCount: 0 }); search(query, 1, true); };
-  const onSubmit = (e) => {
-    e.preventDefault();
-    const query = { q: q.trim(), category, lic };
-    if (query.q.length < 2) { setErr("Escribe al menos 2 letras (por ejemplo: lofi, piano, epic)."); setState("error"); return; }
-    run(query);
-  };
-  const quick = (word) => { setQ(word); run({ q: word, category, lic }); };
-  const pick = (patch) => {
-    if (patch.category) setCategory(patch.category);
-    if (patch.lic) setLic(patch.lic);
-    if (last.current.q) run({ ...last.current, ...patch });
-  };
-
-  const onPlay = (e) => document.querySelectorAll("audio").forEach(a => { if (a !== e.currentTarget) a.pause(); });
-
-  const download = async (t) => {
-    if (dlId) return;
-    setDlId(t.id); setDlPct(0); setNote("");
-    try {
-      const r = await fetch(`${API}/api/libre/download?id=${encodeURIComponent(t.id)}`);
-      if (!r.ok) { let m = "No se pudo descargar esta pista."; try { m = (await r.json()).error || m; } catch {} throw new Error(m); }
-      const total = Number(r.headers.get("content-length")) || 0;
-      const reader = r.body.getReader(), chunks = [];
-      let got = 0;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value); got += value.length;
-        if (total) setDlPct(Math.max(1, Math.round((got / total) * 100)));
-      }
-      const blob = new Blob(chunks, { type: r.headers.get("content-type") || "audio/mpeg" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = nameFromResponse(r, `${t.title}.mp3`);
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-      setDlPct(100);
-      setTimeout(() => { if (alive.current) { setDlId(null); setDlPct(null); } }, 1200);
-    } catch (x) {
-      if (!alive.current) return;
-      setDlId(null); setDlPct(null);
-      setNote(x.name === "TypeError" ? "Se perdió la conexión con el servidor." : x.message);
-    }
-  };
-
-  const copyCredit = async (t) => {
-    const text = t.attribution || `"${t.title}"${t.creator ? " de " + t.creator : ""} (${t.license})${t.landing ? " · " + t.landing : ""}${t.licenseUrl ? " · " + t.licenseUrl : ""}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(t.id); setTimeout(() => setCopied(c => (c === t.id ? null : c)), 1500);
-    } catch { setNote("No se pudo copiar el crédito automáticamente."); }
-  };
-
-  const seg = (on) => "btn rounded-full border px-4 py-2 text-sm " + (on ? "border-white bg-white text-black" : "border-neutral-700 text-neutral-300 hover:bg-neutral-900");
-  const busy = state === "loading" || state === "waking";
-
+function Compress() {
   return (
-    <main className="mx-auto max-w-2xl px-5 pt-8 pb-20">
-      <div className="flex justify-end"><a href="#" className="btn inline-block rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-900">Volver</a></div>
-      <div className="mt-12 text-white"><Icon id="libre" size={52} /></div>
-      <h1 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Música libre de copyright</h1>
-      <p className="mt-3 text-neutral-400">Pistas con licencia Creative Commons (CC0 y CC BY), sin restricciones para uso comercial. Con CC BY solo tienes que dar crédito: copia el texto con un botón y pégalo en la descripción de tu vídeo.</p>
-
-      <form onSubmit={onSubmit} className="mt-8 flex flex-col sm:flex-row gap-3">
-        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Busca un estilo o ambiente: lofi, piano, cinematic…" autoComplete="off" aria-label="Buscar música"
-          className="min-w-0 flex-1 rounded-2xl border border-neutral-800 bg-[#0e0e0e] px-5 py-4 text-base placeholder-neutral-600" />
-        <button className="btn rounded-2xl bg-white px-7 py-4 font-medium text-black hover:bg-neutral-300" disabled={busy}>Buscar</button>
-      </form>
-
-      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tipo de sonido">
-        <button type="button" className={seg(category === "music")} onClick={() => pick({ category: "music" })}>Música</button>
-        <button type="button" className={seg(category === "sound_effect")} onClick={() => pick({ category: "sound_effect" })}>Efectos de sonido</button>
-      </div>
-      <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Licencia">
-        <button type="button" className={seg(lic === "credito")} onClick={() => pick({ lic: "credito" })}>CC0 + CC BY (con crédito)</button>
-        <button type="button" className={seg(lic === "libre")} onClick={() => pick({ lic: "libre" })}>Sin crédito (CC0)</button>
-      </div>
-
-      {state === "idle" && (
-        <div className="mt-6 flex flex-wrap gap-2">
-          {["lofi", "piano", "cinematic", "ambient", "electronic", "acoustic guitar"].map(w => (
-            <button key={w} type="button" onClick={() => quick(w)} className="btn rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-400 hover:bg-neutral-900">{w}</button>
-          ))}
-        </div>
-      )}
-
-      {state === "waking" && (
-        <div className="mt-8 rounded-2xl border border-neutral-800 bg-[#0e0e0e] p-5" role="status" aria-live="polite">
-          <div className="bar h-1.5 rounded-full"></div>
-          <p className="mt-3 text-neutral-200">Encendiendo el servidor… <span className="text-neutral-500">{secs} s</span></p>
-          <p className="mt-1 text-sm text-neutral-500">Puede tardar hasta un minuto; en cuanto esté listo, hago la búsqueda automáticamente.</p>
-        </div>
-      )}
-      {state === "loading" && <div className="mt-8" role="status"><div className="bar h-1.5 rounded-full"></div><p className="mt-3 text-sm text-neutral-500">Buscando música…</p></div>}
-      {state === "error" && <p role="alert" className="mt-8 rounded-2xl border border-neutral-700 bg-[#101010] p-5 text-neutral-200">{err}</p>}
-      {note && <p role="alert" className="mt-6 rounded-2xl border border-neutral-700 bg-[#101010] p-4 text-sm text-neutral-200">{note}</p>}
-      {state === "done" && items.length === 0 && <p className="mt-8 rounded-2xl bg-[#171717] p-5 text-neutral-400">No encontré pistas con esos filtros. Prueba otra palabra (en inglés suele salir más) o cambia el tipo de licencia.</p>}
-
-      {items.length > 0 && (
-        <ul className="mt-8 space-y-4">
-          {items.map(t => (
-            <li key={t.id} className="rounded-3xl border border-neutral-800 bg-[#0e0e0e] p-4 sm:p-5">
-              <div className="flex gap-4">
-                {t.thumbnail
-                  ? <img src={t.thumbnail} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-16 w-16 flex-none rounded-2xl bg-[#171717] object-cover" />
-                  : <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl bg-[#171717] text-neutral-600"><Icon id="libre" size={28} /></div>}
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-medium">{t.title}</h3>
-                  <p className="truncate text-sm text-neutral-500">{[t.creator, fmtTime(t.duration), t.source].filter(Boolean).join(" · ")}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-full border border-neutral-700 px-2.5 py-1 text-neutral-300">{t.license}</span>
-                    <span className="text-neutral-500">{t.needsCredit ? "Pide crédito" : "No necesita crédito"}</span>
-                  </div>
-                </div>
-              </div>
-              {t.preview && <audio controls preload="none" src={t.preview} onPlay={onPlay} className="mt-4 h-10 w-full"></audio>}
-              {dlId === t.id && (dlPct
-                ? <div className="mt-3 h-1 overflow-hidden rounded-full bg-[#1c1c1c]"><div className="h-full rounded-full bg-white" style={{ width: dlPct + "%" }}></div></div>
-                : <div className="bar mt-3 h-1 rounded-full"></div>)}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={() => download(t)} disabled={Boolean(dlId)} className="btn rounded-full bg-white px-5 py-2 text-sm font-medium text-black enabled:hover:bg-neutral-300 disabled:opacity-40 disabled:cursor-not-allowed">
-                  {dlId === t.id ? (dlPct === 100 ? "Listo" : dlPct ? `Descargando… ${dlPct} %` : "Preparando…") : "Descargar"}
-                </button>
-                {t.needsCredit && <button type="button" onClick={() => copyCredit(t)} className="btn rounded-full border border-neutral-700 px-5 py-2 text-sm hover:bg-neutral-900">{copied === t.id ? "Crédito copiado" : "Copiar crédito"}</button>}
-                {t.landing && <a href={t.landing} target="_blank" rel="noopener noreferrer" className="btn rounded-full border border-neutral-800 px-5 py-2 text-sm text-neutral-400 hover:bg-neutral-900">Ver origen</a>}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {state === "done" && meta.page < meta.pageCount && (
-        <div className="mt-6 flex justify-center">
-          <button type="button" onClick={() => search(last.current, meta.page + 1, false)} className="btn rounded-full border border-neutral-700 px-6 py-3 hover:bg-neutral-900">Más resultados</button>
-        </div>
-      )}
-
-      <div className="mt-14 border-t border-neutral-900 pt-6 text-sm text-neutral-500">
-        <p>Más sitios de música libre:</p>
-        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-          {[["Pixabay Music", "https://pixabay.com/music/"], ["Free Music Archive", "https://freemusicarchive.org/"], ["Jamendo", "https://www.jamendo.com/"], ["Uppbeat", "https://uppbeat.io/"]].map(([n, u]) => (
-            <a key={n} href={u} target="_blank" rel="noopener noreferrer" className="text-neutral-300 underline decoration-neutral-700 underline-offset-4 hover:text-white">{n}</a>
-          ))}
-        </p>
-        <p className="mt-4">Guarda el enlace de origen de cada pista como prueba de su licencia. Resultados de Openverse.</p>
-      </div>
-    </main>
+    <div className="flex h-[100dvh] flex-col">
+      <div className="flex flex-none justify-end px-5 pt-4 pb-3"><a href="#" className="btn inline-block rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-900">Volver</a></div>
+      <iframe title="Comprimir vídeo" srcDoc={window.COMPRIMIR_HTML} className="w-full min-h-0 flex-1 border-0 bg-[#070707]"></iframe>
+    </div>
   );
 }
 
@@ -531,7 +344,7 @@ function App() {
   const app = useInstall();
   useEffect(() => { if (!noBackend) pingServer(); }, []); // lo despierta en segundo plano al abrir la web
   const p = PLATFORMS.find(x => x.id === r);
-  return r === "libre" ? <FreeMusic /> : p ? <Platform key={p.id} p={p} /> : <Home app={app} />;
+  return r === "comprimir" ? <Compress /> : p ? <Platform key={p.id} p={p} /> : <Home app={app} />;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
