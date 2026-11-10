@@ -1,6 +1,6 @@
 // MultiDownloader · service worker (permite instalar la app y abrirla aunque la red falle un momento).
 // La API (/api/...) nunca se guarda en caché: las descargas siempre van al servidor.
-const VERSION = "md-v1";
+const VERSION = "md-v2";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/favicon.svg"];
 const CDN = ["cdn.tailwindcss.com", "cdnjs.cloudflare.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 

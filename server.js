@@ -10,6 +10,7 @@ const dns = require("dns").promises;
 const net = require("net");
 
 const app = express();
+app.set("trust proxy", 1);   // detrás del proxy de Render, para ver la IP real de cada visitante
 app.use(express.json({ limit: "10kb" }));
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, file) {
@@ -126,6 +127,10 @@ async function resolve(req) {
   } else await assertPublicHost(host);
   return { id, p, url: u.toString() };
 }
+
+// Música libre (Openverse): /api/libre/search y /api/libre/download
+try { app.use("/api/libre", require("./providers/free-music")({ express, AppError, assertPublicHost })); }
+catch (e) { console.error("No se pudo cargar providers/free-music.js:", e.message); }
 
 app.get("/api/platforms", (_q, res) =>
   res.json(Object.entries(providers).map(([id, p]) => ({ id, name: p.name, downloads: Boolean(hook) }))));

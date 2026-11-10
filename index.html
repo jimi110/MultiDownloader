@@ -53,12 +53,13 @@ const Icon = ({ id, size = 40 }) => {
   if (id === "youtube") return <svg {...p}><rect x="4" y="9" width="32" height="22" rx="7"/><path d="M17 15l8 5-8 5z" fill="currentColor"/></svg>;
   if (id === "instagram") return <svg {...p}><rect x="6" y="6" width="28" height="28" rx="9"/><circle cx="20" cy="20" r="6.5"/><circle cx="28.5" cy="11.5" r="1" fill="currentColor"/></svg>;
   if (id === "tiktok") return <svg {...p}><path d="M22 7v18.5a5.5 5.5 0 1 1-5.5-5.5"/><path d="M22 7c.5 4 3 6.5 7.500 7"/></svg>;
+  if (id === "libre") return <svg {...p}><path d="M15 29V10l16-3v18"/><circle cx="11" cy="29" r="4"/><circle cx="27" cy="25" r="4"/></svg>;
   if (id === "suno") return <svg {...p}><path d="M8 17v6M14 11v18M20 6v28M26 13v14M32 17v6"/></svg>;
   return <svg {...p}><circle cx="20" cy="20" r="14" strokeDasharray="3 5"/><path d="M20 13v14M13 20h14"/></svg>;
 };
 
 const PLATFORMS = [
-  { id: "youtube", name: "YouTube", title: "Vídeos y audio de YouTube", hint: "https://www.youtube.com/watch?v=…" },
+  { id: "youtube", name: "YouTube", title: "Vídeos y audio de YouTube y YouTube Music", hint: "https://www.youtube.com/watch?v=…" },
   { id: "instagram", name: "Instagram", title: "Reels, vídeos e imágenes de Instagram", hint: "https://www.instagram.com/reel/…" },
   { id: "tiktok", name: "TikTok", title: "Vídeos de TikTok", hint: "https://www.tiktok.com/@usuario/video/…" },
   { id: "suno", name: "Suno AI", title: "Canciones de Suno AI", hint: "https://suno.com/song/…" },
@@ -84,6 +85,21 @@ async function waitForServer(isAlive, maxMs = 150000) {
   }
   return false;
 }
+
+const NO_BACKEND_MSG = "Esta web se abre desde GitHub Pages o un archivo local, que no tienen backend. Edita la línea window.MULTIDOWNLOADER_API al principio del index.html con la URL de tu servidor de Render, o abre la web desde esa URL.";
+async function ensureServer(isAlive, onWake) {
+  if (await pingServer()) return true;
+  onWake();
+  return waitForServer(isAlive);
+}
+const nameFromResponse = (r, fallback) => {
+  const cd = r.headers.get("content-disposition") || "";
+  const star = cd.match(/filename\*=UTF-8''([^;]+)/i);
+  if (star) { try { return decodeURIComponent(star[1]); } catch {} }
+  const plain = cd.match(/filename="?([^";]+)"?/i);
+  return plain ? plain[1] : fallback;
+};
+const fmtTime = (ms) => { if (!ms) return ""; const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 
 // ---- Instalar como app (PC y móvil) ----
 const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
@@ -125,7 +141,11 @@ function Home({ app }) {
             <span className="text-2xl font-medium">{p.name}</span>
           </a>
         ))}
-        <a href="#otros" className="tile flex items-center gap-5 rounded-3xl border border-dashed border-neutral-700 bg-[#0e0e0e] p-7 sm:p-9 sm:col-span-2">
+        <a href="#libre" className="tile flex items-center gap-5 rounded-3xl border border-neutral-800 bg-[#0e0e0e] p-7 sm:p-9">
+          <span className="text-white"><Icon id="libre" size={44} /></span>
+          <span><span className="block text-2xl font-medium">Música libre</span><span className="text-sm text-neutral-400">Sin copyright, lista para tus vídeos</span></span>
+        </a>
+        <a href="#otros" className="tile flex items-center gap-5 rounded-3xl border border-dashed border-neutral-700 bg-[#0e0e0e] p-7 sm:p-9">
           <span className="text-white"><Icon id="otros" size={44} /></span>
           <span><span className="block text-2xl font-medium">Otros</span><span className="text-sm text-neutral-400">Pega el enlace de cualquier otra app o web</span></span>
         </a>
@@ -306,12 +326,212 @@ function Platform({ p }) {
   );
 }
 
+function FreeMusic() {
+  const [q, setQ] = useState("");
+  const [category, setCategory] = useState("music");
+  const [lic, setLic] = useState("credito");
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({ page: 0, pageCount: 0 });
+  const [state, setState] = useState("idle");   // idle | waking | loading | done | error
+  const [err, setErr] = useState("");
+  const [note, setNote] = useState("");
+  const [secs, setSecs] = useState(0);
+  const [dlId, setDlId] = useState(null);
+  const [dlPct, setDlPct] = useState(null);
+  const [copied, setCopied] = useState(null);
+  const alive = React.useRef(true);
+  const last = React.useRef({ q: "", category: "music", lic: "credito" });
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => {
+    if (state !== "waking") return;
+    setSecs(0);
+    const t = setInterval(() => setSecs(x => x + 1), 1000);
+    return () => clearInterval(t);
+  }, [state]);
+
+  const search = async (query, page, replace) => {
+    setNote("");
+    if (noBackend) { setErr(NO_BACKEND_MSG); setState("error"); return; }
+    setErr(""); setState("loading");
+    try {
+      const up = await ensureServer(() => alive.current, () => alive.current && setState("waking"));
+      if (!alive.current) return;
+      if (!up) { setErr(`El servidor no responde (probé ${(API || location.origin)}/api/platforms). Revisa en Render que el despliegue esté en marcha.`); setState("error"); return; }
+      setState("loading");
+      const params = new URLSearchParams({ q: query.q, page: String(page), category: query.category, lic: query.lic });
+      const r = await fetch(`${API}/api/libre/search?${params}`, { signal: AbortSignal.timeout(30000) });
+      const raw = await r.text();
+      let j;
+      try { j = JSON.parse(raw); } catch { throw new Error("El servidor respondió algo inesperado. Inténtalo de nuevo en unos segundos."); }
+      if (!r.ok) throw new Error(j.error || "No se pudo buscar.");
+      if (!alive.current) return;
+      setItems(prev => (replace ? j.results : [...prev, ...j.results]));
+      setMeta({ page: j.page, pageCount: j.pageCount });
+      setState("done");
+    } catch (x) {
+      if (!alive.current) return;
+      setErr(x.name === "TimeoutError" ? "La búsqueda tardó demasiado. Inténtalo de nuevo." : x.name === "TypeError" ? "No se pudo conectar con el servidor." : x.message);
+      setState("error");
+    }
+  };
+
+  const run = (query) => { last.current = query; setItems([]); setMeta({ page: 0, pageCount: 0 }); search(query, 1, true); };
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const query = { q: q.trim(), category, lic };
+    if (query.q.length < 2) { setErr("Escribe al menos 2 letras (por ejemplo: lofi, piano, epic)."); setState("error"); return; }
+    run(query);
+  };
+  const quick = (word) => { setQ(word); run({ q: word, category, lic }); };
+  const pick = (patch) => {
+    if (patch.category) setCategory(patch.category);
+    if (patch.lic) setLic(patch.lic);
+    if (last.current.q) run({ ...last.current, ...patch });
+  };
+
+  const onPlay = (e) => document.querySelectorAll("audio").forEach(a => { if (a !== e.currentTarget) a.pause(); });
+
+  const download = async (t) => {
+    if (dlId) return;
+    setDlId(t.id); setDlPct(0); setNote("");
+    try {
+      const r = await fetch(`${API}/api/libre/download?id=${encodeURIComponent(t.id)}`);
+      if (!r.ok) { let m = "No se pudo descargar esta pista."; try { m = (await r.json()).error || m; } catch {} throw new Error(m); }
+      const total = Number(r.headers.get("content-length")) || 0;
+      const reader = r.body.getReader(), chunks = [];
+      let got = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value); got += value.length;
+        if (total) setDlPct(Math.max(1, Math.round((got / total) * 100)));
+      }
+      const blob = new Blob(chunks, { type: r.headers.get("content-type") || "audio/mpeg" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = nameFromResponse(r, `${t.title}.mp3`);
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      setDlPct(100);
+      setTimeout(() => { if (alive.current) { setDlId(null); setDlPct(null); } }, 1200);
+    } catch (x) {
+      if (!alive.current) return;
+      setDlId(null); setDlPct(null);
+      setNote(x.name === "TypeError" ? "Se perdió la conexión con el servidor." : x.message);
+    }
+  };
+
+  const copyCredit = async (t) => {
+    const text = t.attribution || `"${t.title}"${t.creator ? " de " + t.creator : ""} (${t.license})${t.landing ? " · " + t.landing : ""}${t.licenseUrl ? " · " + t.licenseUrl : ""}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(t.id); setTimeout(() => setCopied(c => (c === t.id ? null : c)), 1500);
+    } catch { setNote("No se pudo copiar el crédito automáticamente."); }
+  };
+
+  const seg = (on) => "btn rounded-full border px-4 py-2 text-sm " + (on ? "border-white bg-white text-black" : "border-neutral-700 text-neutral-300 hover:bg-neutral-900");
+  const busy = state === "loading" || state === "waking";
+
+  return (
+    <main className="mx-auto max-w-2xl px-5 pt-8 pb-20">
+      <div className="flex justify-end"><a href="#" className="btn inline-block rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-900">Volver</a></div>
+      <div className="mt-12 text-white"><Icon id="libre" size={52} /></div>
+      <h1 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Música libre de copyright</h1>
+      <p className="mt-3 text-neutral-400">Pistas con licencia Creative Commons (CC0 y CC BY), sin restricciones para uso comercial. Con CC BY solo tienes que dar crédito: copia el texto con un botón y pégalo en la descripción de tu vídeo.</p>
+
+      <form onSubmit={onSubmit} className="mt-8 flex flex-col sm:flex-row gap-3">
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Busca un estilo o ambiente: lofi, piano, cinematic…" autoComplete="off" aria-label="Buscar música"
+          className="min-w-0 flex-1 rounded-2xl border border-neutral-800 bg-[#0e0e0e] px-5 py-4 text-base placeholder-neutral-600" />
+        <button className="btn rounded-2xl bg-white px-7 py-4 font-medium text-black hover:bg-neutral-300" disabled={busy}>Buscar</button>
+      </form>
+
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Tipo de sonido">
+        <button type="button" className={seg(category === "music")} onClick={() => pick({ category: "music" })}>Música</button>
+        <button type="button" className={seg(category === "sound_effect")} onClick={() => pick({ category: "sound_effect" })}>Efectos de sonido</button>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Licencia">
+        <button type="button" className={seg(lic === "credito")} onClick={() => pick({ lic: "credito" })}>CC0 + CC BY (con crédito)</button>
+        <button type="button" className={seg(lic === "libre")} onClick={() => pick({ lic: "libre" })}>Sin crédito (CC0)</button>
+      </div>
+
+      {state === "idle" && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {["lofi", "piano", "cinematic", "ambient", "electronic", "acoustic guitar"].map(w => (
+            <button key={w} type="button" onClick={() => quick(w)} className="btn rounded-full border border-neutral-800 px-4 py-2 text-sm text-neutral-400 hover:bg-neutral-900">{w}</button>
+          ))}
+        </div>
+      )}
+
+      {state === "waking" && (
+        <div className="mt-8 rounded-2xl border border-neutral-800 bg-[#0e0e0e] p-5" role="status" aria-live="polite">
+          <div className="bar h-1.5 rounded-full"></div>
+          <p className="mt-3 text-neutral-200">Encendiendo el servidor… <span className="text-neutral-500">{secs} s</span></p>
+          <p className="mt-1 text-sm text-neutral-500">Puede tardar hasta un minuto; en cuanto esté listo, hago la búsqueda automáticamente.</p>
+        </div>
+      )}
+      {state === "loading" && <div className="mt-8" role="status"><div className="bar h-1.5 rounded-full"></div><p className="mt-3 text-sm text-neutral-500">Buscando música…</p></div>}
+      {state === "error" && <p role="alert" className="mt-8 rounded-2xl border border-neutral-700 bg-[#101010] p-5 text-neutral-200">{err}</p>}
+      {note && <p role="alert" className="mt-6 rounded-2xl border border-neutral-700 bg-[#101010] p-4 text-sm text-neutral-200">{note}</p>}
+      {state === "done" && items.length === 0 && <p className="mt-8 rounded-2xl bg-[#171717] p-5 text-neutral-400">No encontré pistas con esos filtros. Prueba otra palabra (en inglés suele salir más) o cambia el tipo de licencia.</p>}
+
+      {items.length > 0 && (
+        <ul className="mt-8 space-y-4">
+          {items.map(t => (
+            <li key={t.id} className="rounded-3xl border border-neutral-800 bg-[#0e0e0e] p-4 sm:p-5">
+              <div className="flex gap-4">
+                {t.thumbnail
+                  ? <img src={t.thumbnail} alt="" loading="lazy" referrerPolicy="no-referrer" className="h-16 w-16 flex-none rounded-2xl bg-[#171717] object-cover" />
+                  : <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl bg-[#171717] text-neutral-600"><Icon id="libre" size={28} /></div>}
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-medium">{t.title}</h3>
+                  <p className="truncate text-sm text-neutral-500">{[t.creator, fmtTime(t.duration), t.source].filter(Boolean).join(" · ")}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full border border-neutral-700 px-2.5 py-1 text-neutral-300">{t.license}</span>
+                    <span className="text-neutral-500">{t.needsCredit ? "Pide crédito" : "No necesita crédito"}</span>
+                  </div>
+                </div>
+              </div>
+              {t.preview && <audio controls preload="none" src={t.preview} onPlay={onPlay} className="mt-4 h-10 w-full"></audio>}
+              {dlId === t.id && (dlPct
+                ? <div className="mt-3 h-1 overflow-hidden rounded-full bg-[#1c1c1c]"><div className="h-full rounded-full bg-white" style={{ width: dlPct + "%" }}></div></div>
+                : <div className="bar mt-3 h-1 rounded-full"></div>)}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="button" onClick={() => download(t)} disabled={Boolean(dlId)} className="btn rounded-full bg-white px-5 py-2 text-sm font-medium text-black enabled:hover:bg-neutral-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                  {dlId === t.id ? (dlPct === 100 ? "Listo" : dlPct ? `Descargando… ${dlPct} %` : "Preparando…") : "Descargar"}
+                </button>
+                {t.needsCredit && <button type="button" onClick={() => copyCredit(t)} className="btn rounded-full border border-neutral-700 px-5 py-2 text-sm hover:bg-neutral-900">{copied === t.id ? "Crédito copiado" : "Copiar crédito"}</button>}
+                {t.landing && <a href={t.landing} target="_blank" rel="noopener noreferrer" className="btn rounded-full border border-neutral-800 px-5 py-2 text-sm text-neutral-400 hover:bg-neutral-900">Ver origen</a>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {state === "done" && meta.page < meta.pageCount && (
+        <div className="mt-6 flex justify-center">
+          <button type="button" onClick={() => search(last.current, meta.page + 1, false)} className="btn rounded-full border border-neutral-700 px-6 py-3 hover:bg-neutral-900">Más resultados</button>
+        </div>
+      )}
+
+      <div className="mt-14 border-t border-neutral-900 pt-6 text-sm text-neutral-500">
+        <p>Más sitios de música libre:</p>
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          {[["Pixabay Music", "https://pixabay.com/music/"], ["Free Music Archive", "https://freemusicarchive.org/"], ["Jamendo", "https://www.jamendo.com/"], ["Uppbeat", "https://uppbeat.io/"]].map(([n, u]) => (
+            <a key={n} href={u} target="_blank" rel="noopener noreferrer" className="text-neutral-300 underline decoration-neutral-700 underline-offset-4 hover:text-white">{n}</a>
+          ))}
+        </p>
+        <p className="mt-4">Guarda el enlace de origen de cada pista como prueba de su licencia. Resultados de Openverse.</p>
+      </div>
+    </main>
+  );
+}
+
 function App() {
   const r = useRoute();
   const app = useInstall();
   useEffect(() => { if (!noBackend) pingServer(); }, []); // lo despierta en segundo plano al abrir la web
   const p = PLATFORMS.find(x => x.id === r);
-  return p ? <Platform key={p.id} p={p} /> : <Home app={app} />;
+  return r === "libre" ? <FreeMusic /> : p ? <Platform key={p.id} p={p} /> : <Home app={app} />;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
