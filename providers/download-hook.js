@@ -89,6 +89,8 @@ const friendly = (e) => {
   if (e instanceof HookError) return e;
   const s = String(e.stderr || e.message || "");
   console.error("[yt-dlp]", s.trim().split("\n").pop());   // el detalle técnico queda en los Logs de Render
+  if (/no video could be found|no video formats|there is no video/i.test(s)) return new HookError("NO_VIDEO", "Esta publicación no tiene ningún vídeo adjunto.", 404);
+  if (/nsfw|age-restricted|sensitive content|requires authentication/i.test(s)) return new HookError("PRIVATE", "Esta publicación tiene contenido sensible o requiere iniciar sesión, así que no se puede descargar.", 403);
   if (/sign in to confirm|not a bot|cookies/i.test(s)) return new HookError("BLOCKED", "YouTube está bloqueando las peticiones del servidor en este momento. Puede volver a funcionar más tarde: inténtalo de nuevo en unas horas.", 502);
   if (/private|login required|requires login|members-only/i.test(s)) return new HookError("PRIVATE", "El contenido es privado o requiere iniciar sesión.", 403);
   if (/unavailable|not found|404|removed|deleted/i.test(s)) return new HookError("NOT_FOUND", "El contenido no está disponible o fue eliminado.", 404);
