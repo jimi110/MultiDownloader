@@ -62,6 +62,11 @@ const providers = {
       return { title: d.title || "Publicación de Instagram", thumbnail: d.thumbnail_url, author: d.author_name, duration: null, formats: [] };
     }
   },
+  // X (Twitter): vídeos adjuntos en una publicación. Metadatos y descarga se resuelven con yt-dlp (download-hook.js)
+  x: {
+    name: "X (Twitter)", hosts: ["x.com", "twitter.com"],
+    async analyze() { throw new AppError("NOT_CONFIGURED", "Los enlaces de X requieren el motor de descarga (yt-dlp).", 501); }
+  },
   // Cualquier otra app: se resuelve con yt-dlp (admite cientos de webs). hosts: null = cualquier dominio público
   otros: {
     name: "Otros", hosts: null,

@@ -57,6 +57,7 @@ const Icon = ({ id, size = 40 }) => {
   const p = { width: size, height: size, viewBox: "0 0 40 40", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true };
   if (id === "youtube") return <svg {...p}><rect x="4" y="9" width="32" height="22" rx="7"/><path d="M17 15l8 5-8 5z" fill="currentColor"/></svg>;
   if (id === "instagram") return <svg {...p}><rect x="6" y="6" width="28" height="28" rx="9"/><circle cx="20" cy="20" r="6.5"/><circle cx="28.5" cy="11.5" r="1" fill="currentColor"/></svg>;
+  if (id === "x") return <svg {...p}><path d="M9 8h6l16 24h-6z"/><path d="M30.500 8L21.500 18.500M18.500 21.500L9.500 32"/></svg>;
   if (id === "tiktok") return <svg {...p}><path d="M22 7v18.5a5.5 5.5 0 1 1-5.5-5.5"/><path d="M22 7c.5 4 3 6.5 7.500 7"/></svg>;
   if (id === "comprimir") return <svg {...p}><path d="M8 15h8V7M32 15h-8V7M8 25h8v8M32 25h-8v8"/></svg>;
   if (id === "suno") return <svg {...p}><path d="M8 17v6M14 11v18M20 6v28M26 13v14M32 17v6"/></svg>;
@@ -66,6 +67,7 @@ const Icon = ({ id, size = 40 }) => {
 const PLATFORMS = [
   { id: "youtube", name: "YouTube", title: "Vídeos y audio de YouTube y YouTube Music", hint: "https://www.youtube.com/watch?v=…" },
   { id: "instagram", name: "Instagram", title: "Reels, vídeos e imágenes de Instagram", hint: "https://www.instagram.com/reel/…" },
+  { id: "x", name: "X (Twitter)", title: "Vídeos de publicaciones de X (Twitter)", hint: "https://x.com/usuario/status/…" },
   { id: "tiktok", name: "TikTok", title: "Vídeos de TikTok", hint: "https://www.tiktok.com/@usuario/video/…" },
   { id: "suno", name: "Suno AI", title: "Canciones de Suno AI", hint: "https://suno.com/song/…" },
   { id: "otros", name: "Otros", title: "Enlaces de cualquier otra app", hint: "https://… (pega el enlace de cualquier otra app)" },
